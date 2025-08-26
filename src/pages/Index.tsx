@@ -12,15 +12,18 @@ import TaxPlanning from '@/components/sections/TaxPlanning';
 import ProtectionPlanning from '@/components/sections/ProtectionPlanning';
 import SuccessionPlanning from '@/components/sections/SuccessionPlanning';
 import ActionPlan from '@/components/sections/ActionPlan';
+import ImplementationMonitoring from '@/components/sections/ImplementationMonitoring';
 import FloatingActions from '@/components/layout/FloatingActions';
 import { DotNavigation, MobileDotNavigation } from '@/components/layout/DotNavigation';
 import { useSectionObserver } from '@/hooks/useSectionObserver';
 import { Loader2 } from 'lucide-react';
+import PrintExportButton from '@/components/ui/PrintExportButton';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
 import SectionVisibilityControls from '@/components/layout/SectionVisibilityControls';
 import HideableSection from '@/components/ui/HideableSection';
 import SecurityIndicator from '@/components/sections/SecurityIndicator';
+import LifeProjects from '@/components/sections/LifeProjects';
 
 interface IndexPageProps {
   accessor?: boolean;
@@ -138,6 +141,14 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
     imovelDesejado: userReports?.imovelDesejado || {}
   });
 
+  const lifeProjectsSummary = () => {
+    const raw = getClientData().objetivos || [];
+    return (Array.isArray(raw) ? raw : []).map((item: any) => {
+      if (typeof item === 'string') return { titulo: item };
+      return { titulo: item?.titulo || item?.nome || 'Projeto', descricao: item?.descricao || item?.detalhes };
+    });
+  };
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -203,13 +214,21 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
             <Header />
             <main className="h-[calc(100vh-64px)] overflow-y-auto">
               <div className="min-h-screen">
-                <CoverPage clientData={getClientData().cliente}>
+                <CoverPage
+                  clientData={getClientData().cliente}
+                  projectsSummary={lifeProjectsSummary()}
+                  retirementSummary={{
+                    rendaMensalDesejada: getClientData().aposentadoria.rendaMensalDesejada,
+                    idadeAposentadoria: getClientData().aposentadoria.idadeAposentadoria,
+                  }}
+                >
                   <SecurityIndicator
                     scoreFinanceiro={{
                       pilar: 'Total Geral',
                       notaPonderada: userReports?.scoreFinanceiro?.find?.(s => s.Pilar === 'Total Geral')?.['Nota Ponderada'] ?? 0,
                       elementosAvaliados: userReports?.scoreFinanceiro?.filter?.(s => s.Pilar !== 'Total Geral').map(s => s.Pilar) ?? []
                     }}
+                    hideControls={clientPropect}
                   />
                 </CoverPage>
               </div>
@@ -218,38 +237,52 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
                 <FinancialSummary data={getClientData().financas} hideControls={clientPropect} />
               </HideableSection>
               
-              <HideableSection sectionId="total-asset-allocation" hideControls={clientPropect}>
-                <TotalAssetAllocation data={userReports} hideControls={clientPropect} />
+              <HideableSection sectionId="protection" hideControls={clientPropect}>
+                <ProtectionPlanning data={getClientData()} hideControls={clientPropect} />
               </HideableSection>
               
-              <HideableSection sectionId="retirement" hideControls={clientPropect}>
-                <RetirementPlanning data={getClientData().aposentadoria} hideControls={clientPropect} />
+              <HideableSection sectionId="total-asset-allocation" hideControls={clientPropect}>
+                <TotalAssetAllocation data={userReports} hideControls={clientPropect} />
               </HideableSection>
               
               <HideableSection sectionId="beach-house" hideControls={clientPropect}>
                 <BeachHouse data={userReports} hideControls={clientPropect} />
               </HideableSection>
               
-              <HideableSection sectionId="tax" hideControls={clientPropect}>
-                <TaxPlanning data={getClientData()} hideControls={clientPropect} />
+              <HideableSection sectionId="retirement" hideControls={clientPropect}>
+                <RetirementPlanning data={getClientData().aposentadoria} hideControls={clientPropect} />
               </HideableSection>
               
-              <HideableSection sectionId="protection" hideControls={clientPropect}>
-                <ProtectionPlanning data={getClientData()} hideControls={clientPropect} />
+              <HideableSection sectionId="tax" hideControls={clientPropect}>
+                <TaxPlanning data={getClientData()} hideControls={clientPropect} />
               </HideableSection>
               
               <HideableSection sectionId="succession" hideControls={clientPropect}>
                 <SuccessionPlanning data={getClientData()} hideControls={clientPropect} />
               </HideableSection>
               
-              <HideableSection sectionId="action-plan" hideControls={clientPropect}>
-                <ActionPlan data={getClientData()} hideControls={clientPropect} />
-              </HideableSection>
+              {false && (
+                <HideableSection sectionId="life-projects" hideControls={clientPropect}>
+                  <LifeProjects data={getClientData()} hideControls={clientPropect} />
+                </HideableSection>
+              )}
+              
+              {!clientPropect && (
+                <>
+                  <HideableSection sectionId="action-plan" hideControls={clientPropect}>
+                    <ActionPlan data={getClientData()} hideControls={clientPropect} />
+                  </HideableSection>
+                  <HideableSection sectionId="implementation-monitoring" hideControls={clientPropect}>
+                    <ImplementationMonitoring data={getClientData()} hideControls={clientPropect} />
+                  </HideableSection>
+                </>
+              )}
             </main>
             <DotNavigation />
             <MobileDotNavigation />
             <FloatingActions userReports={userReports} />
             {!clientPropect && <SectionVisibilityControls />}
+            {!clientPropect && <PrintExportButton />}
           </div>
         </SectionVisibilityProvider>
       </CardVisibilityProvider>

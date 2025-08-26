@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import HideableCard from '@/components/ui/HideableCard';
 import { useCardVisibility } from '@/context/CardVisibilityContext';
-import { BarChart } from 'lucide-react';
+import { BarChart, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import DonutChart from '@/components/charts/DonutChart';
 import { formatCurrency } from '@/utils/formatCurrency';
@@ -96,6 +96,50 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
     : 0;
   const horizonteCobertura = despesasMensais > 0 ? Number((investimentos / (12 * despesasMensais)).toFixed(2)) : 0;
 
+  // Exposição Geográfica dos Investimentos Financeiros (Brasil vs Exterior)
+  const investimentosFinanceiros = Array.isArray(data?.financas?.ativos)
+    ? data.financas.ativos.filter((a: any) => a?.tipo === 'Investimentos')
+    : [];
+  const totalInvestimentosFinanceiros = investimentosFinanceiros.reduce((sum: number, a: any) => sum + (Number(a?.valor) || 0), 0);
+  const exteriorKeywords = [
+    'internacional', 'exterior', 'usd', 'dólar', 'dolar', 'euro', 'offshore', 'global', 'bdr', 'ivvb',
+    'nyse', 'nasdaq', 'treasury', 'tesouro americano', 'sp500', 'eua', 'us'
+  ];
+  const isExterior = (asset: any) => {
+    const haystack = `${asset?.classe || ''} ${asset?.descricao || ''} ${asset?.ticker || ''} ${asset?.nome || ''} ${asset?.tipo || ''}`.toLowerCase();
+    return exteriorKeywords.some(k => haystack.includes(k));
+  };
+  const valorExterior = investimentosFinanceiros.reduce((sum: number, a: any) => sum + (isExterior(a) ? (Number(a?.valor) || 0) : 0), 0);
+  const valorBrasil = Math.max(0, totalInvestimentosFinanceiros - valorExterior);
+  const pctExterior = totalInvestimentosFinanceiros > 0 ? Math.round((valorExterior / totalInvestimentosFinanceiros) * 100) : 0;
+  const pctBrasil = totalInvestimentosFinanceiros > 0 ? 100 - pctExterior : 0;
+  const recomendacaoExteriorPct = 18;
+  const deltaExteriorPct = recomendacaoExteriorPct - pctExterior;
+
+  // Mock fallback when there are no detailed investment items
+  const baseInvestimentos = Number(data?.financas?.composicao_patrimonial?.['Investimentos'] || 0);
+  const mockTotal = baseInvestimentos > 0 ? baseInvestimentos : 100000;
+  const shouldMockExposure = totalInvestimentosFinanceiros === 0;
+
+  const shownPctExterior = shouldMockExposure ? recomendacaoExteriorPct : pctExterior;
+  const shownPctBrasil = shouldMockExposure ? (100 - recomendacaoExteriorPct) : pctBrasil;
+  const shownValorExterior = shouldMockExposure ? Math.round((mockTotal * shownPctExterior) / 100) : valorExterior;
+  const shownValorBrasil = shouldMockExposure ? Math.round((mockTotal * shownPctBrasil) / 100) : valorBrasil;
+  const shownTotalInvest = shouldMockExposure ? mockTotal : totalInvestimentosFinanceiros;
+  const shownDeltaExteriorPct = recomendacaoExteriorPct - shownPctExterior;
+
+  const geoExposureData = [
+    { name: 'Brasil', value: shownPctBrasil, color: '#3B82F6', rawValue: formatCurrency(shownValorBrasil), raw: shownValorBrasil },
+    { name: 'Exterior', value: shownPctExterior, color: '#10B981', rawValue: formatCurrency(shownValorExterior), raw: shownValorExterior }
+  ].filter(i => i.raw > 0);
+
+  const alertClass = shouldMockExposure
+    ? 'bg-accent/10 text-accent'
+    : shownDeltaExteriorPct === 0
+      ? 'bg-emerald-500/10 text-emerald-700'
+      : (Math.abs(shownDeltaExteriorPct) >= 5
+          ? 'bg-financial-danger/10 text-financial-danger'
+          : 'bg-financial-warning/10 text-financial-warning');
 
 
   return (
@@ -112,7 +156,7 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
                 <BarChart size={28} className="text-financial-info" />
               </div>
             </div>
-            <h2 className="text-4xl font-bold mb-3">Gestão de Ativos</h2>
+            <h2 className="text-4xl font-bold mb-3">4. Gestão de Ativos</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Total Asset Allocation - Avaliar a alocação patrimonial completa do cliente (ativos financeiros e reais), identificando concentração, liquidez, coerência com os objetivos e perfil de risco.
             </p>
@@ -120,6 +164,7 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
         </div>
 
         {/* Balanço Patrimonial (Ativos, Passivos e PL em um único bloco) */}
+        {false && (
         <div
           ref={balancoRef as React.RefObject<HTMLDivElement>}
           className="mb-8 animate-on-scroll"
@@ -196,6 +241,7 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
             </CardContent>
           </HideableCard>
         </div>
+        )}
 
         {/* Estratégia Recomendada */}
         <div
@@ -244,6 +290,71 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
                   </div>
                 </div>
               )}
+
+              {/* Exposição Geográfica dos Investimentos Financeiros */}
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4">Exposição Geográfica dos Investimentos Financeiros</h3>
+                <div className="grid md:grid-cols-2 gap-6 items-center">
+                  <DonutChart
+                    data={geoExposureData}
+                    height={240}
+                    innerRadius={60}
+                    outerRadius={90}
+                    legendPosition="side"
+                  />
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-3 rounded-lg border border-border/50 bg-muted/10">
+                        <div className="text-xs text-muted-foreground">Total Investimentos Financeiros</div>
+                        <div className="text-lg font-semibold">{formatCurrency(shownTotalInvest)}</div>
+                      </div>
+                      <div className="p-3 rounded-lg border border-border/50 bg-muted/10">
+                        <div className="text-xs text-muted-foreground">Exterior</div>
+                        <div className="text-lg font-semibold">{formatCurrency(shownValorExterior)} <span className="text-sm text-muted-foreground">({shownPctExterior}%)</span></div>
+                      </div>
+                      <div className="p-3 rounded-lg border border-border/50 bg-muted/10">
+                        <div className="text-xs text-muted-foreground">Brasil</div>
+                        <div className="text-lg font-semibold">{formatCurrency(shownValorBrasil)} <span className="text-sm text-muted-foreground">({shownPctBrasil}%)</span></div>
+                      </div>
+                      <div className="p-3 rounded-lg border border-border/50 bg-muted/10">
+                        <div className="text-xs text-muted-foreground">Recomendação Exterior</div>
+                        <div className="text-lg font-semibold">18%</div>
+                      </div>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {shouldMockExposure ? (
+                        <div className={`p-2 rounded-md ${alertClass}`}>Dados mockados para ilustração (18% no exterior).</div>
+                      ) : (
+                        <div className={`p-2 rounded-md ${alertClass}`}>
+                          {shownDeltaExteriorPct > 0 ? (
+                            <span>Exposição ao exterior abaixo do recomendado em {Math.abs(shownDeltaExteriorPct)} p.p.</span>
+                          ) : shownDeltaExteriorPct < 0 ? (
+                            <span>Exposição ao exterior acima do recomendado em {Math.abs(shownDeltaExteriorPct)} p.p.</span>
+                          ) : (
+                            <span>Exposição ao exterior alinhada à recomendação.</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-3">
+                      <div className="text-xs text-muted-foreground mb-1">Comparação vs. Meta (18% no exterior)</div>
+                      <div className="relative h-3 rounded-full bg-muted overflow-hidden">
+                        <div className="absolute inset-y-0 left-0 bg-blue-500" style={{ width: `${shownPctBrasil}%` }} />
+                        <div className="absolute inset-y-0" style={{ left: `${shownPctBrasil}%`, width: `${shownPctExterior}%`, backgroundColor: '#10B981' }} />
+                        <div className="absolute -top-1 bottom-0" style={{ left: `${recomendacaoExteriorPct}%` }}>
+                          <div className="w-0.5 h-4 bg-foreground/70"></div>
+                        </div>
+                      </div>
+                      <div className="flex justify-between text-[11px] text-muted-foreground mt-1">
+                        <span>Brasil {shownPctBrasil}%</span>
+                        <span>Meta Exterior 18%</span>
+                        <span>Exterior {shownPctExterior}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {/* Resumo Executivo (dinâmico) */}
               <div className="grid md:grid-cols-3 gap-6 mb-8">

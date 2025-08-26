@@ -160,6 +160,24 @@
     display: none;
   }
 
+  /* Impressão: esconder elementos de controle */
+  @media print {
+    .no-print { display: none !important; }
+    .print-hidden-card { display: none !important; }
+    header, nav, .DotNavigation, .MobileDotNavigation { display: none !important; }
+    html, body { height: auto !important; overflow: visible !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    main { height: auto !important; overflow: visible !important; scroll-snap-type: none !important; }
+    .h-screen { height: auto !important; }
+    .min-h-screen { min-height: auto !important; }
+    .overflow-hidden, .overflow-y-auto { overflow: visible !important; }
+    [class*="h-\\[calc(100vh"] { height: auto !important; }
+    .section-container { max-width: 100% !important; }
+    .card, .financial-card { break-inside: avoid; page-break-inside: avoid; }
+    .print-section { page-break-after: always; break-after: page; }
+    .print-section:last-of-type { page-break-after: auto; break-after: auto; }
+    .animate-on-scroll { opacity: 1 !important; transform: none !important; }
+  }
+
   /* Ajustes para melhorar suavidade do scroll */
   @media (prefers-reduced-motion: no-preference) {
     html {

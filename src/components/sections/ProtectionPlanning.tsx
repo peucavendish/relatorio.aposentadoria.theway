@@ -16,7 +16,6 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
-import { Slider } from '@/components/ui/slider';
 
 interface ProtectionPlanningProps {
   data: any;
@@ -46,16 +45,22 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
     : 0;
 
   const coberturaMinimaSugerida = Number(protectionData?.seguroVida?.coberturaMinima || 0);
-  const defaultGarantiaYears = (() => {
-    if (minhasRendasMensais > 0 && coberturaMinimaSugerida > 0) {
-      const anos = Math.round(coberturaMinimaSugerida / (minhasRendasMensais * 12));
-      return Math.min(30, Math.max(1, anos));
-    }
-    return 5;
-  })();
-
-  const [anosGarantia, setAnosGarantia] = React.useState<number>(defaultGarantiaYears);
-  const coberturaSimulada = Math.max(0, minhasRendasMensais * 12 * anosGarantia);
+  const idadeAtual = Number(data?.aposentadoria?.idadeAtual || 0);
+  const idadeAposentadoria = Number(data?.aposentadoria?.idadeAposentadoria || 0);
+  const anosAteAposentadoria = Math.max(0, Number((data?.aposentadoria?.anosRestantes ?? (idadeAposentadoria - idadeAtual)) || 0));
+  const despesasMensais = Number(data?.financas?.despesasMensais || 0);
+  const custoAnual = Math.max(0, despesasMensais * 12);
+  // Capar a no máximo 200 meses
+  const mesesAteAposentadoria = Math.round(anosAteAposentadoria * 12);
+  const mesesConsiderados = Math.min(200, Math.max(0, mesesAteAposentadoria));
+  const coberturaGarantiaRenda = Math.max(0, despesasMensais * mesesConsiderados);
+  // Coberturas adicionais em vida
+  const coberturaDoencasGravesMin = Math.max(0, despesasMensais * 24); // 2 anos de custo mensal
+  const coberturaDoencasGravesMax = Math.max(0, despesasMensais * 60); // 5 anos de custo mensal
+  const coberturaInvalidez = Math.max(0, despesasMensais * 60); // 5 anos de custo mensal
+  const coberturaRendaProtegidaMin = Math.max(0, despesasMensais * 12); // 1 ano de custo mensal
+  const coberturaRendaProtegidaMax = Math.max(0, despesasMensais * 24); // 2 anos de custo mensal
+  const coberturaInvalidezPermanente = Math.max(0, custoAnual * 2); // 2 anos de custo anual
 
   return (
     <section className="py-16 px-4" id="protection">
@@ -67,7 +72,7 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
                 <Shield size={28} className="text-accent" />
               </div>
             </div>
-            <h2 className="text-4xl font-bold mb-3">Proteção Patrimonial e Sucessória</h2>
+            <h2 className="text-4xl font-bold mb-3">3. Proteção Patrimonial e Sucessória</h2>
             <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
               {protectionData.resumo}
             </p>
@@ -97,6 +102,12 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
             </CardContent>
           </HideableCard>
         )}
+
+        {/* Grupo: Proteções em Caso de Falecimento */}
+        <div className="mt-2 mb-6">
+          <h3 className="text-xl font-semibold">Proteções em Caso de Falecimento</h3>
+          <p className="text-sm text-muted-foreground">Inclui planejamento sucessório e garantia de renda aos beneficiários.</p>
+        </div>
 
         {/* Liquidez para Inventário */}
         <HideableCard
@@ -255,43 +266,64 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
                 { name: 'Com Seguro', Consumido: Math.round(consumoComSeguro), Disponivel: Math.round(disponivelComSeguro) },
               ];
               return (
-                <>
-                  <div className="grid md:grid-cols-3 gap-4 py-2">
-                    <div className="space-y-1">
-                      <div className="text-sm text-muted-foreground">Valor Sugerido</div>
-                      <div className="text-xl font-semibold">{formatCurrency(coberturaSeguroVida)}</div>
+                <div className="grid md:grid-cols-2 gap-6 items-stretch">
+                  {/* Left: metrics and covered risks */}
+                  <div className="flex flex-col gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
+                        <div className="text-sm text-muted-foreground">Valor Sugerido</div>
+                        <div className="text-xl font-semibold">{formatCurrency(coberturaSeguroVida)}</div>
+                      </div>
+                      <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
+                        <div className="text-sm text-muted-foreground">Consumo Sem Seguro</div>
+                        <div className="text-xl font-semibold text-financial-danger">{formatCurrency(consumoSemSeguro)}</div>
+                      </div>
+                      <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
+                        <div className="text-sm text-muted-foreground">Consumo Com Seguro</div>
+                        <div className="text-xl font-semibold text-financial-success">{formatCurrency(consumoComSeguro)}</div>
+                      </div>
+                      <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
+                        <div className="text-sm text-muted-foreground">Patrimônio Considerado</div>
+                        <div className="text-xl font-semibold">{formatCurrency(basePatrimonio)}</div>
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <div className="text-sm text-muted-foreground">Consumo Sem Seguro</div>
-                      <div className="text-xl font-semibold text-financial-danger">{formatCurrency(consumoSemSeguro)}</div>
+
+                    <div className="mt-2">
+                      <h4 className="text-md font-medium mb-2">Riscos Cobertos (Morte natural ou acidental)</h4>
+                      <ul className="space-y-2">
+                        {(protectionData?.seguroVida?.riscosProtegidosSucessao || [
+                          'Impostos sucessórios (ITCMD)',
+                          'Custos processuais',
+                          'Cartório',
+                          'Honorários Profissionais',
+                        ]).map((risco: string, index: number) => (
+                          <li key={index} className="flex items-center gap-2">
+                            <CircleDollarSign className="h-4 w-4 text-accent" />
+                            <span>{risco}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                    <div className="space-y-1">
-                      <div className="text-sm text-muted-foreground">Consumo Com Seguro</div>
-                      <div className="text-xl font-semibold text-financial-success">{formatCurrency(consumoComSeguro)}</div>
+
+                    <div className="text-sm text-muted-foreground">
+                      {coberturaSeguroVida >= custoSucessao ? (
+                        <p>Com a cobertura proposta, não há consumo de patrimônio para impostos sucessórios.</p>
+                      ) : (
+                        <p>
+                          A cobertura atual reduz o consumo para {formatCurrency(consumoComSeguro)}. Cobertura adicional de {formatCurrency(Math.max(0, custoSucessao - coberturaSeguroVida))} eliminaria o consumo.
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <div className="mt-3">
-                    <h4 className="text-md font-medium mb-2">Riscos Cobertos</h4>
-                    <ul className="space-y-2">
-                      {(protectionData?.seguroVida?.riscosProtegidosSucessao || [
-                        'Impostos sucessórios (ITCMD)',
-                        'Custos jurídicos e cartorários',
-                        'Liquidez para inventário'
-                      ]).map((risco: string, index: number) => (
-                        <li key={index} className="flex items-center gap-2">
-                          <CircleDollarSign className="h-4 w-4 text-accent" />
-                          <span>{risco}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="p-4 border rounded-lg mt-4">
+
+                  {/* Right: chart */}
+                  <div className="p-4 border rounded-lg">
                     <ChartContainer
                       config={{
                         Disponivel: { label: 'Disponível aos herdeiros', color: '#34D399' },
                         Consumido: { label: 'Impostos e custos jurídicos', color: '#EF4444' },
                       }}
-                      className="h-64 w-full"
+                      className="h-80 w-full"
                     >
                       <ResponsiveContainer>
                         <ReBarChart data={consumoPatrimonioData}>
@@ -306,28 +338,13 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
                       </ResponsiveContainer>
                     </ChartContainer>
                   </div>
-                  <div className="mt-3 text-sm text-muted-foreground">
-                    {coberturaSeguroVida >= custoSucessao ? (
-                      <p>Com a cobertura proposta, não há consumo de patrimônio para impostos sucessórios.</p>
-                    ) : (
-                      <p>
-                        A cobertura atual reduz o consumo para {formatCurrency(consumoComSeguro)}. Cobertura adicional de {formatCurrency(Math.max(0, custoSucessao - coberturaSeguroVida))} eliminaria o consumo.
-                      </p>
-                    )}
-                  </div>
-                </>
+                </div>
               );
             })()}
           </CardContent>
         </HideableCard>
 
-        {/* Grupo: Outras Proteções */}
-        <div className="mt-2 mb-6">
-          <h3 className="text-xl font-semibold">Outras Proteções</h3>
-          <p className="text-sm text-muted-foreground">Coberturas complementares ao seguro de vida de garantia de renda.</p>
-        </div>
-
-        {/* Life Insurance */}
+        {/* Seguro de Vida (Garantia de Renda) - grupo de Falecimento */}
         <HideableCard
           id="seguro-vida"
           isVisible={isCardVisible("seguro-vida")}
@@ -338,7 +355,7 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
             <div className="flex items-center gap-3">
               <CircleDollarSign className="h-8 w-8 text-accent" />
               <div>
-                <CardTitle>Seguro de Vida (Garantia de Renda)</CardTitle>
+                <CardTitle>Seguro de Vida (Proteção Patrimonial)</CardTitle>
                 <CardDescription>{descricaoVida}</CardDescription>
               </div>
             </div>
@@ -348,44 +365,42 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
               <div>
                 <div className="mb-4">
                   <div className="text-sm text-muted-foreground mb-1">Valor Sugerido</div>
-                  <div className="text-xl font-bold text-accent">{formatCurrency(protectionData.seguroVida.coberturaMinima)}</div>
+                  <div className="text-xl font-bold text-accent">{formatCurrency(coberturaGarantiaRenda)}</div>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {protectionData.seguroVida.metodologiaCalculo}
+                    Custo anual × anos até aposentadoria (limitado a 200 meses).
                   </p>
                 </div>
 
                 <div className="mt-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm font-medium">Anos de garantia de renda</div>
-                    <div className="text-sm text-muted-foreground">{anosGarantia} {anosGarantia === 1 ? 'ano' : 'anos'}</div>
-                  </div>
-                  <Slider
-                    value={[anosGarantia]}
-                    min={1}
-                    max={30}
-                    step={1}
-                    onValueChange={(v) => setAnosGarantia(Number(v?.[0] || anosGarantia))}
-                  />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="bg-muted/50 p-3 rounded-lg border border-border/50">
-                      <div className="text-xs text-muted-foreground">Minhas rendas mensais</div>
-                      <div className="font-medium">{formatCurrency(minhasRendasMensais)}</div>
+                      <div className="text-xs text-muted-foreground">Despesas mensais</div>
+                      <div className="font-medium">{formatCurrency(despesasMensais)}</div>
                     </div>
                     <div className="bg-muted/50 p-3 rounded-lg border border-border/50">
-                      <div className="text-xs text-muted-foreground">Cobertura simulada</div>
-                      <div className="font-medium">{formatCurrency(coberturaSimulada)}</div>
+                      <div className="text-xs text-muted-foreground">Custo anual</div>
+                      <div className="font-medium">{formatCurrency(custoAnual)}</div>
+                    </div>
+                    <div className="bg-muted/50 p-3 rounded-lg border border-border/50">
+                      <div className="text-xs text-muted-foreground">Meses até aposentadoria (máx. 200)</div>
+                      <div className="font-medium">{mesesConsiderados}</div>
+                    </div>
+                    <div className="bg-muted/50 p-3 rounded-lg border border-border/50">
+                      <div className="text-xs text-muted-foreground">Cobertura estimada</div>
+                      <div className="font-medium">{formatCurrency(coberturaGarantiaRenda)}</div>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h4 className="text-md font-medium mb-3">Riscos Cobertos</h4>
+                <h4 className="text-md font-medium mb-3">Riscos Cobertos (Morte natural ou acidental)</h4>
                 <ul className="space-y-2">
                   {(protectionData.seguroVida.riscosProtegidos || [
-                    'Morte natural ou acidental',
-                    'Cobertura para ITCMD (herança)',
-                    'Proteção do padrão de vida dos herdeiros'
+                    'Manuntenção do Padrão de Vida',
+                    'Educação dos Filhos',
+                    'Pagamento de Dívidas',
+                    'Sonhos e Projetos',
                   ]).map((risco: string, index: number) => (
                     <li key={index} className="flex items-center gap-2">
                       <CircleDollarSign className="h-4 w-4 text-accent" />
@@ -393,6 +408,54 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
                     </li>
                   ))}
                 </ul>
+              </div>
+            </div>
+          </CardContent>
+        </HideableCard>
+
+        {/* Grupo: Proteções em Vida */}
+        <div className="mt-2 mb-6">
+          <h3 className="text-xl font-semibold">Proteções em Vida</h3>
+          <p className="text-sm text-muted-foreground">Coberturas para proteção do patrimônio e responsabilidade enquanto em vida.</p>
+        </div>
+
+        {/* Proteções Adicionais em Vida */}
+        <HideableCard
+          id="protecao-vida-adicionais"
+          isVisible={isCardVisible("protecao-vida-adicionais")}
+          onToggleVisibility={() => toggleCardVisibility("protecao-vida-adicionais")}
+          className="mb-8"
+        >
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <Shield className="h-8 w-8 text-accent" />
+              <div>
+                <CardTitle>Proteções Adicionais em Vida</CardTitle>
+                <CardDescription>Valores sugeridos com base nas suas despesas atuais.</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
+                <div className="text-sm font-medium">Doenças Graves</div>
+                <div className="text-xs text-muted-foreground mb-1">2 a 5 anos de custo mensal</div>
+                <div className="text-lg font-semibold">{formatCurrency(coberturaDoencasGravesMin)} — {formatCurrency(coberturaDoencasGravesMax)}</div>
+              </div>
+              <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
+                <div className="text-sm font-medium">Invalidez por Acidente</div>
+                <div className="text-xs text-muted-foreground mb-1">5 anos de custo mensal</div>
+                <div className="text-lg font-semibold">{formatCurrency(coberturaInvalidez)}</div>
+              </div>
+              <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
+                <div className="text-sm font-medium">Renda Protegida</div>
+                <div className="text-xs text-muted-foreground mb-1">1 a 2 anos de custo mensal</div>
+                <div className="text-lg font-semibold">{formatCurrency(coberturaRendaProtegidaMin)} — {formatCurrency(coberturaRendaProtegidaMax)}</div>
+              </div>
+              <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
+                <div className="text-sm font-medium">Invalidez por Doença</div>
+                <div className="text-xs text-muted-foreground mb-1">2 anos de custo anual</div>
+                <div className="text-lg font-semibold">{formatCurrency(coberturaInvalidezPermanente)}</div>
               </div>
             </div>
           </CardContent>

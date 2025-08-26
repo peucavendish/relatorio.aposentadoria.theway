@@ -30,6 +30,7 @@ const FinancialSummary: React.FC<FinancialSummaryProps> = ({ data, hideControls 
   const headerRef = useScrollAnimation();
   const summaryCardRef = useScrollAnimation();
   const incomeExpenseCardRef = useScrollAnimation();
+  const balanceCardRef = useScrollAnimation();
 
   const { isCardVisible, toggleCardVisibility } = useCardVisibility();
 
@@ -43,6 +44,11 @@ const FinancialSummary: React.FC<FinancialSummaryProps> = ({ data, hideControls 
   const totalExpensesAnnual = totalExpensesMonthly * 12;
   const surplusMonthly = (totalIncomeAnnual - totalExpensesAnnual) / 12;
   const surplusAnnual = totalIncomeAnnual - totalExpensesAnnual;
+
+  // Totais de ativos e passivos para o balanço
+  const totalAtivosLista = (data?.ativos || []).reduce((s, a) => s + (Number(a?.valor) || 0), 0);
+  const totalPassivosLista = (data?.passivos || []).reduce((s, p) => s + (Number(p?.valor) || 0), 0);
+  const patrimonioLiquidoResumo = (data?.patrimonioLiquido || (totalAtivosLista - totalPassivosLista));
 
   return (
     <section className="py-16 px-4" id="summary">
@@ -58,7 +64,7 @@ const FinancialSummary: React.FC<FinancialSummaryProps> = ({ data, hideControls 
                 <DollarSign size={28} className="text-financial-info" />
               </div>
             </div>
-            <h2 className="text-4xl font-bold mb-3">Resumo Financeiro</h2>
+            <h2 className="text-4xl font-bold mb-3">2. Resumo Financeiro</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Visão geral da sua situação financeira atual, incluindo patrimônio,
               renda, gastos e composição patrimonial.
@@ -235,6 +241,80 @@ const FinancialSummary: React.FC<FinancialSummaryProps> = ({ data, hideControls 
 
             {/* Composição Patrimonial movida para Gestão de Ativos */}
           </div>
+        </div>
+
+        {/* Balanço Patrimonial (Resumo) */}
+        <div ref={balanceCardRef as React.RefObject<HTMLDivElement>} className="mb-10 animate-on-scroll">
+          <HideableCard
+            id="balanco-patrimonial-resumo"
+            isVisible={isCardVisible("balanco-patrimonial-resumo")}
+            onToggleVisibility={() => toggleCardVisibility("balanco-patrimonial-resumo")}
+            hideControls={hideControls}
+          >
+            <div className="md:p-8">
+              <h3 className="card-title-standard">Balanço Patrimonial</h3>
+              <div className="card-grid-3">
+                <div className="card-metric">
+                  <h3 className="card-metric-label">Total de Ativos</h3>
+                  <div className="card-metric-value">{formatCurrency(totalAtivosLista)}</div>
+                </div>
+                <div className="card-metric">
+                  <h3 className="card-metric-label">Total de Passivos</h3>
+                  <div className="card-metric-value">{formatCurrency(totalPassivosLista)}</div>
+                </div>
+                <div className="card-metric">
+                  <h3 className="card-metric-label">Patrimônio Líquido</h3>
+                  <div className="card-metric-value">{formatCurrency(patrimonioLiquidoResumo)}</div>
+                </div>
+              </div>
+
+              {/* Detalhamento de Ativos e Passivos (compacto) */}
+              <div className="card-divider">
+                <div className="card-grid-2">
+                  <div>
+                    <h4 className="card-title-standard text-lg">Ativos</h4>
+                    <div className="card-list">
+                      {(data?.ativos || []).map((asset: any, index: number) => (
+                        <div key={index} className="card-list-item">
+                          <span className="card-list-label">{asset?.tipo}{asset?.classe ? ` - ${asset.classe}` : ''}</span>
+                          <div className="card-flex-between">
+                            <span className="card-list-value">{formatCurrency(Number(asset?.valor) || 0)}</span>
+                            <span className="card-list-percentage">({totalAtivosLista > 0 ? Math.round(((Number(asset?.valor) || 0) / totalAtivosLista) * 100) : 0}%)</span>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="card-divider card-list-item">
+                        <span className="font-semibold">Total de Ativos</span>
+                        <span className="font-semibold">{formatCurrency(totalAtivosLista)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="card-title-standard text-lg">Passivos</h4>
+                    {data?.passivos && data.passivos.length > 0 ? (
+                      <div className="card-list">
+                        {data.passivos.map((liability: any, index: number) => (
+                          <div key={index} className="card-list-item">
+                            <span className="card-list-label">{liability?.tipo}</span>
+                            <div className="card-flex-between">
+                              <span className="card-list-value">{formatCurrency(Number(liability?.valor) || 0)}</span>
+                              <span className="card-list-percentage">({totalPassivosLista > 0 ? Math.round(((Number(liability?.valor) || 0) / totalPassivosLista) * 100) : 0}%)</span>
+                            </div>
+                          </div>
+                        ))}
+                        <div className="card-divider card-list-item">
+                          <span className="font-semibold">Total de Passivos</span>
+                          <span className="font-semibold">{formatCurrency(totalPassivosLista)}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Nenhum passivo registrado</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </HideableCard>
         </div>
 
         {/* Assets & Liabilities movidos para a seção Gestão de Ativos */}

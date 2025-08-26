@@ -25,12 +25,13 @@ const HideableCard: React.FC<HideableCardProps> = ({
   }
 
   return (
-    <Card id={id} className={cn('relative', className, !isVisible && 'bg-slate-100/50')}>
+    <Card id={id} className={cn('relative', !isVisible && 'print-hidden-card', className)}>
       {!hideControls && (
         <button
           type="button"
-          onClick={onToggleVisibility}
-          className="absolute top-3 right-3 z-10 flex items-center justify-center p-1 rounded-full bg-background/80 hover:bg-background border border-border/50 transition-colors"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleVisibility(); }}
+          className="absolute top-3 left-3 z-20 flex items-center justify-center p-1 rounded-full bg-background/80 hover:bg-background border border-border/50 transition-colors no-print"
           aria-label={isVisible ? "Ocultar informações" : "Mostrar informações"}
           title={isVisible ? "Ocultar informações" : "Mostrar informações"}
         >
@@ -47,9 +48,20 @@ const HideableCard: React.FC<HideableCardProps> = ({
       </div>
 
       {!isVisible && (
-        <div className="absolute inset-0 bg-slate-100/30 flex justify-end items-end p-1">
-          <div className="text-[10px] text-slate-600 font-medium">
-            oculto para cliente
+        <div className="absolute inset-0 z-10 backdrop-blur-md bg-background/60 flex items-center justify-center no-print">
+          <div className="text-center space-y-2">
+            <EyeOff size={18} className="mx-auto text-muted-foreground" />
+            <div className="text-[10px] text-slate-600 font-medium">oculto para cliente</div>
+            {!hideControls && (
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleVisibility(); }}
+                className="mt-1 inline-flex items-center rounded-md border border-border/60 bg-background px-2 py-1 text-[10px] font-medium shadow-sm hover:bg-background/90"
+              >
+                Mostrar
+              </button>
+            )}
           </div>
         </div>
       )}

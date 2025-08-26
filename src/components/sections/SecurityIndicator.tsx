@@ -2,7 +2,9 @@ import React from 'react';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import StatusChip from '@/components/ui/StatusChip';
 import { ShieldCheck, CheckCircle } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import HideableCard from '@/components/ui/HideableCard';
+import { useCardVisibility } from '@/context/CardVisibilityContext';
 
 
 interface ScoreFinanceiro {
@@ -14,10 +16,12 @@ interface ScoreFinanceiro {
 
 interface SecurityIndicatorProps {
 	scoreFinanceiro?: ScoreFinanceiro;
+	hideControls?: boolean;
 }
 
-const SecurityIndicator: React.FC<SecurityIndicatorProps> = ({ scoreFinanceiro }) => {
+const SecurityIndicator: React.FC<SecurityIndicatorProps> = ({ scoreFinanceiro, hideControls }) => {
 	const securityIndexRef = useScrollAnimation();
+	const { isCardVisible, toggleCardVisibility } = useCardVisibility();
 
 	const pilar = scoreFinanceiro?.pilar ?? 'Total Geral';
 	const notaPonderada = scoreFinanceiro?.notaPonderada ?? 0;
@@ -29,12 +33,16 @@ const SecurityIndicator: React.FC<SecurityIndicatorProps> = ({ scoreFinanceiro }
 		'Endividamento'
 	];
 
-
 	return (
 		<section id="security-indicator">
 			<div className="section-container">
 				<div ref={securityIndexRef as React.RefObject<HTMLDivElement>} className="mb-6 animate-on-scroll">
-					<Card className="md:p-8">
+					<HideableCard
+						id="indicador-seguranca"
+						isVisible={isCardVisible('indicador-seguranca')}
+						onToggleVisibility={() => toggleCardVisibility('indicador-seguranca')}
+						hideControls={hideControls}
+					>
 						<CardHeader className="pb-2">
 							<CardTitle className="flex items-center gap-2 text-xl">
 								<ShieldCheck className="text-accent h-5 w-5" />
@@ -70,7 +78,7 @@ const SecurityIndicator: React.FC<SecurityIndicatorProps> = ({ scoreFinanceiro }
 								</div>
 							</div>
 						</CardContent>
-					</Card>
+					</HideableCard>
 				</div>
 			</div>
 		</section>

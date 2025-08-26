@@ -75,7 +75,7 @@ const TaxPlanning: React.FC<TaxPlanningProps> = ({ data, hideControls }) => {
                 <Calculator size={28} className="text-financial-info" />
               </div>
             </div>
-            <h2 className="text-4xl font-bold mb-3">Planejamento Tributário</h2>
+            <h2 className="text-4xl font-bold mb-3">7. Planejamento Tributário</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Estratégias para otimização fiscal e redução da carga tributária através de estruturação
               patrimonial e organização financeira.

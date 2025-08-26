@@ -99,7 +99,7 @@ const BeachHouse: React.FC<BeachHouseProps> = ({ data, hideControls }) => {
                 <Home size={28} className="text-accent" />
               </div>
             </div>
-            <h2 className="text-4xl font-bold mb-3">Oportunidades em imóveis</h2>
+            <h2 className="text-4xl font-bold mb-3">5. Oportunidades em imóveis</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Estratégias para aquisição de um imóvel desejado, otimizando o investimento e preservando o planejamento financeiro.
             </p>
