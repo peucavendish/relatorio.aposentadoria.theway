@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Card } from '../ui/card';
-import { Calendar, MapPin, User, Users } from 'lucide-react';
+import { Calendar, MapPin, User, Users, Target, PiggyBank } from 'lucide-react';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +16,8 @@ interface CoverPageProps {
   clientData: ClientData;
   date?: string;
   children?: React.ReactNode;
+  projectsSummary?: Array<{ titulo: string; descricao?: string }>;
+  retirementSummary?: { rendaMensalDesejada?: number; idadeAposentadoria?: number };
 }
 
 // Componente customizado que estende o Card básico
@@ -42,7 +44,9 @@ const CoverPage: React.FC<CoverPageProps> = ({
     month: 'long',
     day: 'numeric'
   }),
-  children
+  children,
+  projectsSummary = [],
+  retirementSummary
 }) => {
   const headerRef = useScrollAnimation();
   const cardRef1 = useScrollAnimation();
@@ -60,7 +64,7 @@ const CoverPage: React.FC<CoverPageProps> = ({
             <div className="text-sm font-medium text-accent mb-2 tracking-wider">
               ALTA VISTA INVESTIMENTOS
             </div>
-            <h1 className="text-5xl font-bold mb-2">Planejamento Financeiro</h1>
+            <h1 className="text-5xl font-bold mb-2">Planejamento Patrimonial</h1>
             <p className="text-muted-foreground">
               Preparado especialmente para <span className="font-medium text-foreground">{clientData.nome}</span>
             </p>
@@ -70,7 +74,7 @@ const CoverPage: React.FC<CoverPageProps> = ({
         {/* Client Info Card */}
         <div
           ref={cardRef1 as React.RefObject<HTMLDivElement>}
-          className="mb-6 animate-on-scroll delay-1"
+          className="mb-6 animate-on-scroll"
         >
           <Card className="md:p-8">
             <h2 className="text-2xl font-semibold mb-4">Informações do Cliente</h2>
@@ -130,13 +134,53 @@ const CoverPage: React.FC<CoverPageProps> = ({
           <CardWithHighlight highlight>
             <h2 className="text-2xl font-semibold mb-4">Sobre este relatório</h2>
             <p className="mb-4">
-              Este documento apresenta um planejamento financeiro personalizado, elaborado
+              Este documento apresenta um planejamento patrimonial personalizado, elaborado
               especificamente para suas necessidades e objetivos. Ele contempla análises,
-              projeções e recomendações para otimizar sua jornada financeira.
+              projeções e recomendações para otimizar sua jornada patrimonial e financeira.
             </p>
+            <p className="mb-4">
+              Os projetos de vida informados pelo cliente orientam as prioridades deste plano. Abaixo, um resumo dos principais objetivos considerados:
+            </p>
+            {projectsSummary.length > 0 ? (
+              <ul className="mb-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {projectsSummary.slice(0, 6).map((p, i) => (
+                  <li key={i} className="flex items-start gap-3 p-3 rounded-md border border-border/50 bg-muted/5">
+                    <div className="shrink-0 mt-0.5">
+                      <Target size={16} className="text-accent" />
+                    </div>
+                    <div className="text-sm leading-snug">
+                      <div className="font-medium text-foreground">{p.titulo}</div>
+                      {p.descricao && (
+                        <div className="text-muted-foreground mt-0.5">{p.descricao}</div>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mb-4 text-sm text-muted-foreground">Sem projetos de vida cadastrados até o momento.</p>
+            )}
+
+            {retirementSummary && (retirementSummary.rendaMensalDesejada || retirementSummary.idadeAposentadoria) && (
+              <div className="mb-4 grid sm:grid-cols-2 gap-3">
+                {retirementSummary.rendaMensalDesejada != null && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <PiggyBank size={16} className="text-accent" />
+                    <span>Renda passiva pretendida: <span className="font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(retirementSummary.rendaMensalDesejada || 0)}</span> / mês</span>
+                  </div>
+                )}
+                {retirementSummary.idadeAposentadoria != null && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar size={16} className="text-accent" />
+                    <span>Idade de aposentadoria pretendida: <span className="font-medium">{retirementSummary.idadeAposentadoria}</span> anos</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             <p>
               Navegue pelas seções usando a barra inferior ou os botões de navegação para
-              explorar cada aspecto do seu planejamento financeiro.
+              explorar cada aspecto do seu planejamento patrimonial.
             </p>
           </CardWithHighlight>
         </div>

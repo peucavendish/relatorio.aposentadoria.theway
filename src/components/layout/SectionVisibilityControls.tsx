@@ -51,10 +51,28 @@ const SECTIONS_CONFIG = [
     icon: "👥"
   },
   {
+    id: "total-asset-allocation",
+    label: "Total Asset Allocation",
+    description: "Composição patrimonial consolidada",
+    icon: "📈"
+  },
+  {
+    id: "life-projects",
+    label: "Projetos de Vida",
+    description: "Iniciativas e objetivos pessoais",
+    icon: "🎯"
+  },
+  {
     id: "action-plan",
     label: "Plano de Ação",
     description: "Ações prioritárias e cronograma",
     icon: "📋"
+  },
+  {
+    id: "implementation-monitoring",
+    label: "Implementação e Monitoramento",
+    description: "Acompanhamento de aportes e patrimônio vs metas",
+    icon: "📷"
   }
 ];
 
@@ -96,28 +114,19 @@ const SectionVisibilityControls: React.FC<SectionVisibilityControlsProps> = ({ c
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Settings size={20} />
-              Controle de Visibilidade das Seções
-            </DialogTitle>
+            <DialogTitle>Seções do relatório</DialogTitle>
             <DialogDescription>
-              Gerencie quais seções ficarão visíveis no relatório do cliente
+              Mostre ou oculte seções para personalizar este relatório.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div>
-                <p className="font-medium">Resumo</p>
-                <p className="text-sm text-muted-foreground">
-                  {visibleSectionsCount} de {SECTIONS_CONFIG.length} seções visíveis
-                </p>
-              </div>
-              <Badge variant={hiddenSectionsCount > 0 ? "destructive" : "default"}>
-                {hiddenSectionsCount} ocultas
-              </Badge>
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm text-muted-foreground">
+                {visibleSectionsCount} visíveis • {hiddenSectionsCount} ocultas
+              </span>
             </div>
 
             <div className="space-y-3">
@@ -167,15 +176,9 @@ const SectionVisibilityControls: React.FC<SectionVisibilityControlsProps> = ({ c
             </div>
 
             <div className="bg-accent/10 p-4 rounded-lg border border-accent/20">
-              <h4 className="font-medium mb-2 flex items-center gap-2">
-                <Eye size={16} />
-                Informações Importantes
-              </h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Seções ocultas não aparecerão no relatório do cliente</li>
-                <li>• As configurações são salvas automaticamente</li>
-                <li>• Você pode alterar a visibilidade a qualquer momento</li>
-              </ul>
+              <p className="text-sm text-muted-foreground">
+                As preferências de visibilidade são salvas automaticamente no seu navegador.
+              </p>
             </div>
           </div>
         </DialogContent>

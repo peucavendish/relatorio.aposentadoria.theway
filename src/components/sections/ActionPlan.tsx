@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ArrowRight,
   Calendar,
   Clock,
   ListChecks,
-  User
+  User,
+  Building2
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -68,29 +69,17 @@ const ActionPlan: React.FC<ActionPlanProps> = ({ data, hideControls }) => {
   }
 
   // Mapear próximos passos usando os dados do JSON
-  const cronograma = [
+  const cronogramaInicial = [
     {
-      titulo: "Projetos Imobilizados",
-      descricao: "Estruturação e otimização de investimentos em imóveis",
-      icone: "🏠",
-      cor: "bg-blue-500/10 text-blue-600 border-blue-200",
+      titulo: "Sucessório e Tributário",
+      descricao: "Planejamento sucessório e otimização tributária",
+      icone: "⚖️",
+      cor: "bg-orange-500/10 text-orange-600 border-orange-200",
       acoes: [
-        "Análise da carteira imobiliária atual",
-        "Identificação de oportunidades de otimização",
-        "Estruturação de novos investimentos",
-        "Monitoramento de performance"
-      ]
-    },
-    {
-      titulo: "Proteção Patrimonial",
-      descricao: "Implementação de estratégias para proteção do patrimônio",
-      icone: "🛡️",
-      cor: "bg-green-500/10 text-green-600 border-green-200",
-      acoes: [
-        "Constituição de holding patrimonial",
-        "Estruturação de proteções jurídicas",
-        "Implementação de seguros adequados",
-        "Revisão de estruturas societárias"
+        "Elaboração de testamento",
+        "Estruturação de doações em vida",
+        "Otimização tributária",
+        "Proteção sucessória"
       ]
     },
     {
@@ -106,18 +95,85 @@ const ActionPlan: React.FC<ActionPlanProps> = ({ data, hideControls }) => {
       ]
     },
     {
-      titulo: "Sucessório e Tributário",
-      descricao: "Planejamento sucessório e otimização tributária",
-      icone: "⚖️",
-      cor: "bg-orange-500/10 text-orange-600 border-orange-200",
+      titulo: "Projetos Imobilizados",
+      descricao: "Estruturação e otimização de investimentos em imóveis",
+      icone: "🏠",
+      cor: "bg-blue-500/10 text-blue-600 border-blue-200",
       acoes: [
-        "Elaboração de testamento",
-        "Estruturação de doações em vida",
-        "Otimização tributária",
-        "Proteção sucessória"
+        "Análise da carteira imobiliária atual",
+        "Identificação de oportunidades de otimização",
+        "Estruturação de novos investimentos",
+        "Monitoramento de performance"
+      ]
+    },
+    {
+      titulo: "Internacional",
+      descricao: "Planejamento e estruturação para atuação e proteção internacional",
+      icone: "🌍",
+      cor: "bg-cyan-500/10 text-cyan-600 border-cyan-200",
+      acoes: [
+        "Abertura de conta internacional",
+        "Planejamento cambial e remessas",
+        "Investimentos e estrutura patrimonial no exterior",
+        "Seguro viagem e cobertura de saúde internacional"
+      ]
+    },
+    {
+      titulo: "Proteção Patrimonial",
+      descricao: "Implementação de estratégias para proteção do patrimônio",
+      icone: "🛡️",
+      cor: "bg-green-500/10 text-green-600 border-green-200",
+      acoes: [
+        "Constituição de holding patrimonial",
+        "Estruturação de proteções jurídicas",
+        "Implementação de seguros adequados",
+        "Revisão de estruturas societárias"
+      ]
+    },
+    {
+      titulo: "Corporate (Soluções PJ)",
+      descricao: "Soluções para pessoa jurídica: estrutura, caixa, investimentos e proteção",
+      icone: "🏢",
+      cor: "bg-amber-500/10 text-amber-600 border-amber-200",
+      acoes: [
+        "Diagnóstico societário e fiscal",
+        "Gestão de caixa e aplicações da PJ",
+        "Benefícios, previdência e planos para colaboradores",
+        "Proteções corporativas (D&O, riscos e compliance)"
       ]
     }
   ];
+
+  // Estado local para permitir reordenação de cards (não persistido)
+  const [cronograma, setCronograma] = useState(cronogramaInicial);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+
+  const handleDragStart = (index: number) => (e: React.DragEvent<HTMLDivElement>) => {
+    setDragIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(index));
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (toIndex: number) => (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+    if (isNaN(fromIndex) || fromIndex === toIndex) {
+      setDragIndex(null);
+      return;
+    }
+    setCronograma(prev => {
+      const updated = [...prev];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, moved);
+      return updated;
+    });
+    setDragIndex(null);
+  };
 
   // Verifica se o cliente precisa de uma holding familiar
   const precisaHolding = () => {
@@ -221,7 +277,7 @@ const ActionPlan: React.FC<ActionPlanProps> = ({ data, hideControls }) => {
                 <ListChecks size={28} className="text-accent" />
               </div>
             </div>
-            <h2 className="card-title-standard text-4xl">Plano de Ação Financeira</h2>
+            <h2 className="card-title-standard text-4xl">9. Plano de Ação</h2>
             <p className="card-description-standard max-w-2xl mx-auto">
               Conjunto de ações estratégicas para alcançar seus objetivos financeiros e patrimoniais
             </p>
@@ -233,9 +289,22 @@ const ActionPlan: React.FC<ActionPlanProps> = ({ data, hideControls }) => {
           className="section-container mb-8 animate-on-scroll"
         >
           <h3 className="text-xl font-semibold mb-6">Próximos Passos</h3>
+          {!hideControls && (
+            <div className="text-xs text-muted-foreground mb-2">Arraste os cards para reordenar conforme a prioridade do cliente</div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {cronograma.map((fase, index) => (
-              <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-accent/50">
+              <Card
+                key={index}
+                className={cn(
+                  "group hover:shadow-lg transition-all duration-300 border-2 hover:border-accent/50",
+                  dragIndex === index && "border-accent/70 bg-accent/5"
+                )}
+                draggable={!hideControls}
+                onDragStart={handleDragStart(index)}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop(index)}
+              >
                 <CardHeader className="pb-4">
                   <div className="flex items-center gap-4">
                     <div className={`p-3 rounded-full ${fase.cor} border-2`}>
@@ -246,6 +315,9 @@ const ActionPlan: React.FC<ActionPlanProps> = ({ data, hideControls }) => {
                         <span className="text-xs font-medium bg-accent/10 text-accent px-2 py-1 rounded-full">
                           Passo {index + 1}
                         </span>
+                        {!hideControls && (
+                          <span className="text-[10px] text-muted-foreground">(arraste para mover)</span>
+                        )}
                       </div>
                       <CardTitle className="text-lg font-bold">{fase.titulo}</CardTitle>
                       <CardDescription className="mt-1">{fase.descricao}</CardDescription>
