@@ -12,6 +12,7 @@ import { BarChart, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import DonutChart from '@/components/charts/DonutChart';
 import { formatCurrency } from '@/utils/formatCurrency';
+import ProgressBar from '@/components/ui/ProgressBar';
 
 interface TotalAssetAllocationProps {
   data?: any;
@@ -91,10 +92,28 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
       ? data.financas.rendas.reduce((sum: number, renda: any) => sum + (Number(renda?.valor) || 0), 0)
       : 0);
 
-  const investimentos = Array.isArray(data?.financas?.ativos)
-    ? data.financas.ativos.filter((a: any) => a?.tipo === 'Investimentos').reduce((sum: number, a: any) => sum + (Number(a?.valor) || 0), 0)
-    : 0;
-  const horizonteCobertura = despesasMensais > 0 ? Number((investimentos / (12 * despesasMensais)).toFixed(2)) : 0;
+  // Ativos de curto prazo / alta liquidez (heurística por palavras-chave)
+  const shortTermKeywords = [
+    'selic', 'cdi', 'di', 'poupança', 'poupanca', 'caixa', 'cash', 'reserva', 'emergência', 'emergencia',
+    'lci', 'lca', 'cdb', 'renda fixa', 'rf curto', 'curto prazo', 'money market', 'fundo di',
+    'conta remunerada', 'tesouro selic', 'pix', 'corrente remunerada'
+  ];
+  const isShortTerm = (asset: any) => {
+    const haystack = `${asset?.classe || ''} ${asset?.descricao || ''} ${asset?.ticker || ''} ${asset?.nome || ''} ${asset?.tipo || ''}`.toLowerCase();
+    return shortTermKeywords.some(k => haystack.includes(k));
+  };
+  const shortTermAssets = Array.isArray(data?.financas?.ativos)
+    ? data.financas.ativos.filter((a: any) => isShortTerm(a))
+    : [];
+  const totalCurtoPrazo = shortTermAssets.reduce((sum: number, a: any) => sum + (Number(a?.valor) || 0), 0);
+  const numeroAtivosCurtoPrazo = shortTermAssets.length;
+  // Horizonte de cobertura: ativos de curto prazo / custo de vida mensal
+  const coberturaMeses = despesasMensais > 0 ? Number((totalCurtoPrazo / despesasMensais).toFixed(1)) : 0;
+  const horizonteCobertura = coberturaMeses;
+  const metaCoberturaMeses = 12;
+  const progressoCoberturaPct = Math.min(100, Math.round((coberturaMeses / metaCoberturaMeses) * 100));
+  const progressoCor: 'success' | 'warning' | 'danger' =
+    coberturaMeses >= 12 ? 'success' : coberturaMeses >= 6 ? 'warning' : 'danger';
 
   // Exposição Geográfica dos Investimentos Financeiros (Brasil vs Exterior)
   const investimentosFinanceiros = Array.isArray(data?.financas?.ativos)
@@ -156,7 +175,7 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
                 <BarChart size={28} className="text-financial-info" />
               </div>
             </div>
-            <h2 className="text-4xl font-bold mb-3">4. Gestão de Ativos</h2>
+            <h2 className="text-4xl font-bold mb-3">3. Gestão de Ativos</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Total Asset Allocation - Avaliar a alocação patrimonial completa do cliente (ativos financeiros e reais), identificando concentração, liquidez, coerência com os objetivos e perfil de risco.
             </p>
@@ -164,7 +183,6 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
         </div>
 
         {/* Balanço Patrimonial (Ativos, Passivos e PL em um único bloco) */}
-        {false && (
         <div
           ref={balancoRef as React.RefObject<HTMLDivElement>}
           className="mb-8 animate-on-scroll"
@@ -241,7 +259,6 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
             </CardContent>
           </HideableCard>
         </div>
-        )}
 
         {/* Estratégia Recomendada */}
         <div
@@ -383,35 +400,48 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
                 <div className="space-y-4">
                   <h3 className="text-xl font-semibold mb-4">📊 Indicadores Financeiros</h3>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center p-4 bg-muted/10 rounded-lg border border-border/50">
-                      <span className="font-medium">% de Endividamento</span>
-                      <span className="text-accent font-semibold">{endividamento}%</span>
+                    <div className="p-4 bg-muted/10 rounded-lg border border-border/50">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">% de Endividamento</span>
+                        <span className="text-accent font-semibold">{endividamento}%</span>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">Cálculo: Total de Passivos / Total de Ativos</div>
                     </div>
-                    <div className="flex justify-between items-center p-4 bg-muted/10 rounded-lg border border-border/50">
-                      <span className="font-medium">% de Poupança</span>
-                      <span className="text-accent font-semibold">{poupanca}%</span>
+                    <div className="p-4 bg-muted/10 rounded-lg border border-border/50">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">% de Poupança</span>
+                        <span className="text-accent font-semibold">{poupanca}%</span>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">Cálculo: Excedente Mensal / Renda Total Mensal</div>
                     </div>
-                    <div className="flex justify-between items-center p-4 bg-muted/10 rounded-lg border border-border/50">
-                      <span className="font-medium">Horizonte de Cobertura</span>
-                      <span className="text-accent font-semibold">{horizonteCobertura} meses</span>
+                    <div className="p-4 bg-muted/10 rounded-lg border border-border/50">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">Horizonte de Cobertura</span>
+                        <span className="text-accent font-semibold">{horizonteCobertura} meses</span>
+                      </div>
+                      <div className="flex justify-between text-[11px] text-muted-foreground mt-1">
+                        <span>Ativos de curto prazo: {numeroAtivosCurtoPrazo}</span>
+                        <span>Recomendação Alta Vista: {metaCoberturaMeses} meses</span>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-1">Cálculo: Ativos de curto prazo / Custo de vida mensal</div>
+                      <div className="mt-3">
+                        <ProgressBar
+                          value={coberturaMeses}
+                          max={metaCoberturaMeses}
+                          size="sm"
+                          color={progressoCor}
+                        />
+                        <div className="flex justify-between text-[11px] text-muted-foreground mt-1">
+                          <span>0</span>
+                          <span>Meta: {metaCoberturaMeses} meses</span>
+                          <span>{progressoCoberturaPct}%</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Indicadores Patrimoniais (sem duplicar o Resumo Executivo) */}
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold mb-4">🏠 Indicadores Patrimoniais</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center p-4 bg-muted/10 rounded-lg border border-border/50">
-                      <span className="font-medium">% Financeiro Líquido</span>
-                      <span className="text-accent font-semibold">{percentualFinanceiroLiquido}%</span>
-                    </div>
-                    <div className="flex justify-between items-center p-4 bg-muted/10 rounded-lg border border-border/50">
-                      <span className="font-medium">Maior Classe</span>
-                      <span className="text-accent font-semibold">{maiorClasse} ({maiorPercentual}%)</span>
-                    </div>
-                  </div>
-                </div>
+                
               </div>
 
               {/* Insights e Recomendações */}

@@ -4,15 +4,15 @@ import { useSectionObserver } from '@/hooks/useSectionObserver';
 
 // Definição das seções usando os mesmos IDs e ícones do componente original
 const sections = [
-  { id: 'cover', label: 'Capa' },                // 1
-  { id: 'summary', label: 'Resumo Financeiro' }, // 2
-  { id: 'protection', label: 'Proteção Patrimonial' }, // 3
-  { id: 'total-asset-allocation', label: 'Total Asset Allocation' }, // 4
-  { id: 'beach-house', label: 'Imóvel' },        // 5
-  { id: 'retirement', label: 'Aposentadoria' },  // 6
-  { id: 'tax', label: 'Planejamento Tributário' }, // 7
-  { id: 'succession', label: 'Planejamento Sucessório' }, // 8
-  { id: 'action-plan', label: 'Plano de Ação' }  // 9
+  { id: 'cover', label: 'Capa' },
+  { id: 'summary', label: 'Resumo Financeiro' },
+  { id: 'total-asset-allocation', label: 'Gestão de Ativos' },
+  { id: 'retirement', label: 'Aposentadoria' },
+  { id: 'beach-house', label: 'Imóvel' },
+  { id: 'protection', label: 'Proteção Patrimonial' },
+  { id: 'succession', label: 'Planejamento Sucessório' },
+  { id: 'tax', label: 'Planejamento Tributário' },
+  { id: 'action-plan', label: 'Plano de Ação' }
 ];
 
 export function DotNavigation() {

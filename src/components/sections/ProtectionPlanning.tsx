@@ -72,7 +72,7 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
                 <Shield size={28} className="text-accent" />
               </div>
             </div>
-            <h2 className="text-4xl font-bold mb-3">3. Proteção Patrimonial e Sucessória</h2>
+            <h2 className="text-4xl font-bold mb-3">6. Proteção Patrimonial</h2>
             <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
               {protectionData.resumo}
             </p>
@@ -109,11 +109,11 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
           <p className="text-sm text-muted-foreground">Inclui planejamento sucessório e garantia de renda aos beneficiários.</p>
         </div>
 
-        {/* Liquidez para Inventário */}
+        {/* Módulo Unificado: Liquidez + Seguro Sucessório */}
         <HideableCard
-          id="liquidez-inventario"
-          isVisible={isCardVisible("liquidez-inventario")}
-          onToggleVisibility={() => toggleCardVisibility("liquidez-inventario")}
+          id="liquidez-seguro-unificado"
+          isVisible={isCardVisible("liquidez-seguro-unificado")}
+          onToggleVisibility={() => toggleCardVisibility("liquidez-seguro-unificado")}
           hideControls={hideControls}
           className="mb-8"
         >
@@ -121,14 +121,15 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
             <div className="card-flex-start">
               <Shield className="card-icon h-8 w-8" />
               <div>
-                <CardTitle className="card-title-standard">Liquidez para Inventário</CardTitle>
+                <CardTitle className="card-title-standard">Liquidez e Seguro Sucessório</CardTitle>
                 <CardDescription className="card-description-standard">
-                  Comparativo entre previdência privada (VGBL/PGBL) e seguro de vida para garantir liquidez imediata e reduzir o impacto do inventário.
+                  Comparativo de liquidez para inventário e impacto do seguro de vida no consumo do patrimônio.
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent>
+            {/* Bloco 1: Liquidez para Inventário */}
             {(() => {
               const totalPatrimonio =
                 Number(data?.financas?.patrimonioLiquido) ||
@@ -144,25 +145,19 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
               const vgblSaldo = Number(data?.tributario?.previdenciaVGBL?.saldoAtual || data?.tributario?.previdenciaVGBL?.saldo || 0);
               const previdenciaPrivadaSaldo = Number(data?.previdencia_privada?.saldo_atual || 0);
 
-              // Evitar dupla contagem: prioriza ativos; se inexistente, usa saldos declarados
               const totalPrevidencia = previdenciaEmAtivos > 0 ? previdenciaEmAtivos : (vgblSaldo + previdenciaPrivadaSaldo);
 
               const baseInventario = Math.max(0, totalPatrimonio - totalPrevidencia);
               const taxaSucessao = 0.14; // 14%
               const custoSucessorio = Math.max(0, baseInventario * taxaSucessao);
-
               const transmissivelAosHerdeiros = Math.max(0, baseInventario - custoSucessorio);
 
               const chartData = [
                 { name: 'Inventário', Total: Math.round(totalPatrimonio), Custo: Math.round(custoSucessorio), Transmissivel: Math.round(transmissivelAosHerdeiros) }
               ];
 
-              const coberturaSeguroSugerida = Number(data?.protecao?.seguroVida?.coberturaMinima || 0);
-              const saldoPrevidencia = totalPrevidencia;
-
               return (
-                <div className="grid md:grid-cols-2 gap-6 items-stretch">
-                  {/* Left: metrics and comparison */}
+                <div className="grid md:grid-cols-2 gap-6 items-stretch mb-8">
                   <div className="flex flex-col gap-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
@@ -171,7 +166,7 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
                       </div>
                       <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
                         <div className="text-sm text-muted-foreground">Previdência (fora do inventário)</div>
-                        <div className="text-xl font-semibold">{formatCurrency(saldoPrevidencia)}</div>
+                        <div className="text-xl font-semibold">{formatCurrency(totalPrevidencia)}</div>
                       </div>
                       <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
                         <div className="text-sm text-muted-foreground">Base do Inventário</div>
@@ -182,18 +177,10 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
                         <div className="text-xl font-semibold text-financial-danger">{formatCurrency(custoSucessorio)}</div>
                       </div>
                     </div>
-
-                    <div className="mt-2">
-                      <h4 className="text-md font-medium mb-2">Previdência vs. Seguro (Liquidez para Inventário)</h4>
-                      <ul className="space-y-2 text-sm text-muted-foreground">
-                        <li className="flex gap-2"><span className="text-accent">•</span> Previdência VGBL/PGBL: recursos direcionados aos beneficiários, tipicamente fora do inventário, com liquidez direta.</li>
-                        <li className="flex gap-2"><span className="text-accent">•</span> Seguro de Vida: pagamento direto aos beneficiários, fora do inventário; pode complementar o custo sucessório.</li>
-                        {/* <li className="flex gap-2"><span className="text-accent">•</span> Cobertura de seguro sugerida: <span className="font-medium text-foreground">{formatCurrency(coberturaSeguroSugerida)}</span></li> */}
-                      </ul>
+                    <div className="text-sm text-muted-foreground">
+                      Previdência VGBL/PGBL e Seguro de Vida costumam ficar fora do inventário e oferecem liquidez imediata.
                     </div>
                   </div>
-
-                  {/* Right: tall, narrow chart */}
                   <div className="p-4 border rounded-lg">
                     <ChartContainer
                       config={{
@@ -220,39 +207,11 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
                 </div>
               );
             })()}
-          </CardContent>
-        </HideableCard>
 
-        {/* Texto explicativo sobre liquidez e inventário */}
-        <div className="mb-8 text-sm text-muted-foreground">
-          <p>
-            Tanto a previdência privada (VGBL/PGBL) quanto o seguro de vida costumam ser pagos diretamente aos beneficiários, sem necessidade de inventário, oferecendo liquidez imediata para despesas e preservação do patrimônio. O seguro pode ser calibrado para cobrir o custo sucessório estimado, reduzindo ou eliminando o consumo de patrimônio no inventário.
-          </p>
-        </div>
-
-        {/* Life Insurance - Patrimony Consumption Comparison */}
-        <HideableCard
-          id="seguro-vida-consumo-patrimonio"
-          isVisible={isCardVisible("seguro-vida-consumo-patrimonio")}
-          onToggleVisibility={() => toggleCardVisibility("seguro-vida-consumo-patrimonio")}
-          hideControls={hideControls}
-          className="mb-8"
-        >
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <CircleDollarSign className="h-8 w-8 text-accent" />
-              <div>
-                <CardTitle>Seguro de Vida Sucessório</CardTitle>
-                <CardDescription>
-                  Consumo de patrimônio: comparação com e sem cobertura de seguro de vida. Considera custo sucessório de 14% sobre o patrimônio líquido (impostos e custos jurídicos).
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {(() => {
-              const patrimonioTotal = data?.protecao?.analiseNecessidades?.patrimonioTotal || 0;
-              const patrimonioLiquido = data?.financas?.patrimonioLiquido || 0;
+            {/* Bloco 2: Seguro de Vida Sucessório (removido a pedido) */}
+            {false && (() => {
+              const patrimonioTotal = data?.protecao?.analiseNecessidades?.patrimonioTotal || data?.financas?.patrimonioLiquido || 0;
+              const patrimonioLiquido = data?.financas?.patrimonioLiquido || patrimonioTotal * 0.9;
               const basePatrimonio = patrimonioLiquido > 0 ? patrimonioLiquido : (patrimonioTotal * 0.9);
               const taxaSucessao = 0.14; // 14%
               const custoSucessao = Math.max(0, basePatrimonio * taxaSucessao);
@@ -265,84 +224,41 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
                 { name: 'Sem Seguro', Consumido: Math.round(consumoSemSeguro), Disponivel: Math.round(disponivelSemSeguro) },
                 { name: 'Com Seguro', Consumido: Math.round(consumoComSeguro), Disponivel: Math.round(disponivelComSeguro) },
               ];
-              return (
-                <div className="grid md:grid-cols-2 gap-6 items-stretch">
-                  {/* Left: metrics and covered risks */}
-                  <div className="flex flex-col gap-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
-                        <div className="text-sm text-muted-foreground">Valor Sugerido</div>
-                        <div className="text-xl font-semibold">{formatCurrency(coberturaSeguroVida)}</div>
-                      </div>
-                      <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
-                        <div className="text-sm text-muted-foreground">Consumo Sem Seguro</div>
-                        <div className="text-xl font-semibold text-financial-danger">{formatCurrency(consumoSemSeguro)}</div>
-                      </div>
-                      <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
-                        <div className="text-sm text-muted-foreground">Consumo Com Seguro</div>
-                        <div className="text-xl font-semibold text-financial-success">{formatCurrency(consumoComSeguro)}</div>
-                      </div>
-                      <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
-                        <div className="text-sm text-muted-foreground">Patrimônio Considerado</div>
-                        <div className="text-xl font-semibold">{formatCurrency(basePatrimonio)}</div>
-                      </div>
-                    </div>
 
-                    <div className="mt-2">
-                      <h4 className="text-md font-medium mb-2">Riscos Cobertos (Morte natural ou acidental)</h4>
-                      <ul className="space-y-2">
-                        {(protectionData?.seguroVida?.riscosProtegidosSucessao || [
-                          'Impostos sucessórios (ITCMD)',
-                          'Custos processuais',
-                          'Cartório',
-                          'Honorários Profissionais',
-                        ]).map((risco: string, index: number) => (
-                          <li key={index} className="flex items-center gap-2">
-                            <CircleDollarSign className="h-4 w-4 text-accent" />
-                            <span>{risco}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="text-sm text-muted-foreground">
-                      {coberturaSeguroVida >= custoSucessao ? (
-                        <p>Com a cobertura proposta, não há consumo de patrimônio para impostos sucessórios.</p>
-                      ) : (
-                        <p>
-                          A cobertura atual reduz o consumo para {formatCurrency(consumoComSeguro)}. Cobertura adicional de {formatCurrency(Math.max(0, custoSucessao - coberturaSeguroVida))} eliminaria o consumo.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Right: chart */}
-                  <div className="p-4 border rounded-lg">
-                    <ChartContainer
-                      config={{
-                        Disponivel: { label: 'Disponível aos herdeiros', color: '#34D399' },
-                        Consumido: { label: 'Impostos e custos jurídicos', color: '#EF4444' },
-                      }}
-                      className="h-80 w-full"
-                    >
-                      <ResponsiveContainer>
-                        <ReBarChart data={consumoPatrimonioData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" />
-                          <YAxis tickFormatter={(v) => `R$ ${(v / 1_000_000).toFixed(1)}Mi`} />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <ChartLegend content={<ChartLegendContent />} />
-                          <Bar dataKey="Consumido" stackId="a" fill="#EF4444" />
-                          <Bar dataKey="Disponivel" stackId="a" fill="#34D399" />
-                        </ReBarChart>
-                      </ResponsiveContainer>
-                    </ChartContainer>
-                  </div>
-                </div>
-              );
+              return null;
             })()}
           </CardContent>
         </HideableCard>
+
+        {/* Texto explicativo sobre liquidez e inventário */}
+        <div className="mb-8 text-sm text-muted-foreground">
+          <p>
+            Tanto a previdência privada (VGBL/PGBL) quanto o seguro de vida costumam ser pagos diretamente aos beneficiários, sem necessidade de inventário, oferecendo liquidez imediata para despesas e preservação do patrimônio. O seguro pode ser calibrado para cobrir o custo sucessório estimado, reduzindo ou eliminando o consumo de patrimônio no inventário.
+          </p>
+        </div>
+
+        {false && (
+          <HideableCard
+            id="seguro-vida-consumo-patrimonio"
+            isVisible={isCardVisible("seguro-vida-consumo-patrimonio")}
+            onToggleVisibility={() => toggleCardVisibility("seguro-vida-consumo-patrimonio")}
+            hideControls={hideControls}
+            className="mb-8"
+          >
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <CircleDollarSign className="h-8 w-8 text-accent" />
+                <div>
+                  <CardTitle>Seguro de Vida Sucessório</CardTitle>
+                  <CardDescription>
+                    Consumo de patrimônio: comparação com e sem cobertura de seguro de vida. Considera custo sucessório de 14% sobre o patrimônio líquido (impostos e custos jurídicos).
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent></CardContent>
+          </HideableCard>
+        )}
 
         {/* Seguro de Vida (Garantia de Renda) - grupo de Falecimento */}
         <HideableCard
@@ -355,7 +271,7 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
             <div className="flex items-center gap-3">
               <CircleDollarSign className="h-8 w-8 text-accent" />
               <div>
-                <CardTitle>Seguro de Vida (Proteção Patrimonial)</CardTitle>
+                <CardTitle>Seguro de Vida (Garantia de Renda)</CardTitle>
                 <CardDescription>{descricaoVida}</CardDescription>
               </div>
             </div>

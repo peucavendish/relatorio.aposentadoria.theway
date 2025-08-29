@@ -30,6 +30,7 @@ interface SnapshotMetrics {
   cdiQuarter: number;
   ipcaQuarter: number;
   expectedQuarterContribution: number;
+  expectedQuarterReturn: number;
   realizedQuarterContribution: number;
   aporteCompliance: number;
   expectedQuarterPatrimony: number;
@@ -119,6 +120,7 @@ const ImplementationMonitoring: React.FC<ImplementationMonitoringProps> = ({ dat
                 cdiQuarter: pow1p(cdiAnnual, 3 / 12) - 1,
                 ipcaQuarter: ipcaAnnual / 4,
                 expectedQuarterContribution,
+                expectedQuarterReturn: currentInvestments * (pow1p(cdiAnnual, 3 / 12) - 1),
                 realizedQuarterContribution,
                 aporteCompliance: expectedQuarterContribution > 0 ? Math.min(1, realizedQuarterContribution / expectedQuarterContribution) : 0,
                 expectedQuarterPatrimony: currentInvestments + (currentInvestments * (pow1p(cdiAnnual, 3 / 12) - 1)) + expectedQuarterContribution,
@@ -164,6 +166,7 @@ const ImplementationMonitoring: React.FC<ImplementationMonitoringProps> = ({ dat
           cdiQuarter: cdiQ,
           ipcaQuarter: ipcaQ,
           expectedQuarterContribution,
+          expectedQuarterReturn: expectedReturn,
           realizedQuarterContribution,
           aporteCompliance: aporteComp,
           expectedQuarterPatrimony: expectedPat,
@@ -229,104 +232,104 @@ const ImplementationMonitoring: React.FC<ImplementationMonitoringProps> = ({ dat
         </div>
 
         <div ref={sectionRef} className="section-container animate-on-scroll">
-          <h3 className="text-xl font-semibold mb-3">Premissas e KPIs do trimestre</h3>
-          <div ref={captureRef} className="relative overflow-visible">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <h3 className="text-xl font-semibold mb-3">KPIs do trimestre</h3>
+          <div className="relative overflow-visible">
+            <div ref={captureRef}>
+            <div className="mb-6">
+              <h4 className="text-lg font-semibold mb-2">Premissas Financeiras</h4>
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2"><PiggyBank className="h-4 w-4" /> Aportes (Trimestre)</CardTitle>
-                  <CardDescription>Objetivo vs Realizado</CardDescription>
+                  <CardTitle className="text-base flex items-center gap-2"><Target className="h-4 w-4" /> Patrimônio Financeiro Atual</CardTitle>
+                  <CardDescription>Base para projeções e metas do trimestre</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Esperado</span>
-                    <span className="font-medium">{formatCurrency(Math.round(expectedQuarterContribution))}</span>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="text-sm font-medium">Valor atual</div>
+                    <div className="text-base font-semibold">{formatCurrency(Math.round(currentInvestments))}</div>
                   </div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Realizado</span>
-                    <span className={cn("font-medium", realizedQuarterContribution >= expectedQuarterContribution ? "text-financial-success" : "text-foreground")}>{formatCurrency(Math.round(realizedQuarterContribution))}</span>
-                  </div>
-                  <Progress value={aporteCompliance * 100} className="h-2" />
-                  <div className="text-xs text-muted-foreground mt-2">Cumprimento: <span className="font-medium text-foreground">{toPercentage(aporteCompliance)}</span></div>
-                  <p className="text-xs text-muted-foreground mt-2">Base: aporte mensal esperado = recomendado ou excedente mensal; meta do trimestre = 3× esse valor.</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2"><TrendingUp className="h-4 w-4" /> CDI e IPCA</CardTitle>
-                  <CardDescription>Parâmetros de referência</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 gap-3 mb-3">
-                    <div>
-                      <Label htmlFor="cdiAnnual" className="mb-1 block">CDI (12 meses) %</Label>
-                      <Input
-                        id="cdiAnnual"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={Number.isFinite(cdiAnnual) ? (cdiAnnual * 100).toFixed(2) : ''}
-                        readOnly
-                        disabled
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="ipcaAnnual" className="mb-1 block">IPCA (12 meses) %</Label>
-                      <Input
-                        id="ipcaAnnual"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={Number.isFinite(ipcaAnnual) ? (ipcaAnnual * 100).toFixed(2) : ''}
-                        readOnly
-                        disabled
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between border-t pt-3 mt-1">
-                    <div className="text-sm text-muted-foreground">CDI (trimestre ≈)</div>
-                    <Badge variant="outline" className="text-foreground">{toPercentage(cdiQuarter)}</Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">Usado para estimar a rentabilidade (100% do CDI). IPCA apenas como referência de inflação.</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2"><Target className="h-4 w-4" /> Patrimônio de Investimentos</CardTitle>
-                  <CardDescription>Esperado (Trimestre) vs Real</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Esperado</span>
-                    <span className="font-medium">{formatCurrency(Math.round(expectedQuarterPatrimony))}</span>
-                  </div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Real</span>
-                    <span className={cn("font-medium", realPatrimony >= expectedQuarterPatrimony ? "text-financial-success" : "text-foreground")}>{formatCurrency(Math.round(realPatrimony))}</span>
-                  </div>
-                  <Progress value={patrimonioCompliance * 100} className="h-2" />
-                  <div className="text-xs text-muted-foreground mt-2">Aderência: <span className="font-medium text-foreground">{toPercentage(patrimonioCompliance)}</span></div>
-                  <p className="text-xs text-muted-foreground mt-2">Esperado = patrimônio atual + rentabilidade do trimestre + aportes esperados. Real = patrimônio reportado em Investimentos.</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2"><Percent className="h-4 w-4" /> Rentabilidade Esperada</CardTitle>
-                  <CardDescription>Base: 100% do CDI</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Sobre o patrimônio atual</span>
-                    <span className="font-medium">{formatCurrency(Math.round(expectedQuarterReturn))}</span>
-                  </div>
-                  <div className="text-xs text-muted-foreground">Equivale a {toPercentage(cdiQuarter)} no trimestre. IPCA trimestral de referência: {toPercentage(ipcaQuarter)}.</div>
-                  <div className="text-xs text-muted-foreground mt-1">Considera 100% do CDI sobre o patrimônio atual; não inclui resgates ou eventos extraordinários.</div>
+                  <div className="text-xs text-muted-foreground">Considera o total reportado em Investimentos.</div>
                 </CardContent>
               </Card>
             </div>
+            <div className="mb-6">
+              <h4 className="text-lg font-semibold mb-2">Premissas (Alta Vista)</h4>
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2"><TrendingUp className="h-4 w-4" /> Premissas Alta Vista</CardTitle>
+                  <CardDescription>CDI/IPCA e rentabilidade esperada (100% do CDI)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                      <div className="text-sm font-medium mb-2">CDI e IPCA</div>
+                      <div className="grid grid-cols-1 gap-3 mb-3">
+                        <div>
+                          <Label htmlFor="cdiAnnual" className="mb-1 block">CDI (12 meses) %</Label>
+                          <Input
+                            id="cdiAnnual"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={Number.isFinite(cdiAnnual) ? (cdiAnnual * 100).toFixed(2) : ''}
+                            readOnly
+                            disabled
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="ipcaAnnual" className="mb-1 block">IPCA (12 meses) %</Label>
+                          <Input
+                            id="ipcaAnnual"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={Number.isFinite(ipcaAnnual) ? (ipcaAnnual * 100).toFixed(2) : ''}
+                            readOnly
+                            disabled
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between border-t pt-3 mt-1">
+                        <div className="text-sm text-muted-foreground">CDI (trimestre ≈)</div>
+                        <Badge variant="outline" className="text-foreground">{toPercentage(cdiQuarter)}</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">Usado para estimar a rentabilidade (100% do CDI). IPCA apenas como referência de inflação.</p>
+                    </div>
+
+                    <div>
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-sm font-medium flex items-center gap-2"><Percent className="h-4 w-4" /> Rentabilidade Esperada</div>
+                          <div className="text-base font-semibold">{formatCurrency(Math.round(expectedQuarterReturn))}</div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">Base: 100% do CDI</div>
+                        <div className="text-xs text-muted-foreground">Equivale a {toPercentage(cdiQuarter)} no trimestre. IPCA trimestral de referência: {toPercentage(ipcaQuarter)}.</div>
+                        <div className="text-xs text-muted-foreground mt-1">Considera 100% do CDI sobre o patrimônio atual; não inclui resgates ou eventos extraordinários.</div>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-sm font-medium flex items-center gap-2"><PiggyBank className="h-4 w-4" /> Aportes esperados (Trimestre)</div>
+                          <div className="text-base font-semibold">{formatCurrency(Math.round(expectedQuarterContribution))}</div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">Meta trimestral baseada no aporte mensal esperado × 3.</div>
+                      </div>
+
+                      <div className="mt-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-sm font-medium flex items-center gap-2"><Target className="h-4 w-4" /> Patrimônio esperado (Trimestre)</div>
+                          <div className="text-base font-semibold">{formatCurrency(Math.round(expectedQuarterPatrimony))}</div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">Patrimônio atual + rentabilidade esperada + aportes esperados.</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            </div>
+            {/* Bloco "Realizado" removido conforme solicitação */}
+
             <Card className="mb-2">
               <CardContent className="py-4">
                 <div className="flex flex-col items-center justify-center gap-2">
@@ -363,6 +366,11 @@ const ImplementationMonitoring: React.FC<ImplementationMonitoringProps> = ({ dat
                     </tr>
                   </thead>
                   <tbody>
+                    {/* Ordem seguindo os KPIs de cima para baixo */}
+                    <tr>
+                      <td className="sticky left-0 bg-background z-10 font-medium">Patrimônio atual (Investimentos)</td>
+                      {snapshots.map(s => <td key={s.id + '-pat-atual'}>{formatCurrency(Math.round((s.metrics?.realPatrimony) ?? realPatrimony))}</td>)}
+                    </tr>
                     <tr>
                       <td className="sticky left-0 bg-background z-10 font-medium">CDI (12m)</td>
                       {snapshots.map(s => <td key={s.id + '-cdi12'}>{toPercentage((s.metrics?.cdiAnnual) ?? cdiAnnual)}</td>)}
@@ -372,33 +380,22 @@ const ImplementationMonitoring: React.FC<ImplementationMonitoringProps> = ({ dat
                       {snapshots.map(s => <td key={s.id + '-ipca12'}>{toPercentage((s.metrics?.ipcaAnnual) ?? ipcaAnnual)}</td>)}
                     </tr>
                     <tr>
-                      <td className="sticky left-0 bg-background z-10 font-medium">CDI (trim)</td>
+                      <td className="sticky left-0 bg-background z-10 font-medium">CDI (trimestre)</td>
                       {snapshots.map(s => <td key={s.id + '-cditrim'}>{toPercentage((s.metrics?.cdiQuarter) ?? (pow1p(cdiAnnual, 3/12) - 1))}</td>)}
                     </tr>
                     <tr>
-                      <td className="sticky left-0 bg-background z-10 font-medium">Aportes esperados</td>
+                      <td className="sticky left-0 bg-background z-10 font-medium">Rentabilidade esperada (trimestre)</td>
+                      {snapshots.map(s => <td key={s.id + '-rent-esp'}>{formatCurrency(Math.round((s.metrics?.expectedQuarterReturn) ?? expectedQuarterReturn))}</td>)}
+                    </tr>
+                    <tr>
+                      <td className="sticky left-0 bg-background z-10 font-medium">Aportes esperados (trimestre)</td>
                       {snapshots.map(s => <td key={s.id + '-aportexp'}>{formatCurrency(Math.round((s.metrics?.expectedQuarterContribution) ?? expectedQuarterContribution))}</td>)}
                     </tr>
                     <tr>
-                      <td className="sticky left-0 bg-background z-10 font-medium">Aportes realizados</td>
-                      {snapshots.map(s => <td key={s.id + '-aportr'}>{formatCurrency(Math.round((s.metrics?.realizedQuarterContribution) ?? realizedQuarterContribution))}</td>)}
-                    </tr>
-                    <tr>
-                      <td className="sticky left-0 bg-background z-10 font-medium">Cumprimento (aportes)</td>
-                      {snapshots.map(s => <td key={s.id + '-aportc'}>{toPercentage((s.metrics?.aporteCompliance) ?? aporteCompliance)}</td>)}
-                    </tr>
-                    <tr>
-                      <td className="sticky left-0 bg-background z-10 font-medium">Patrimônio esperado</td>
+                      <td className="sticky left-0 bg-background z-10 font-medium">Patrimônio esperado (trimestre)</td>
                       {snapshots.map(s => <td key={s.id + '-patesp'}>{formatCurrency(Math.round((s.metrics?.expectedQuarterPatrimony) ?? expectedQuarterPatrimony))}</td>)}
                     </tr>
-                    <tr>
-                      <td className="sticky left-0 bg-background z-10 font-medium">Patrimônio real</td>
-                      {snapshots.map(s => <td key={s.id + '-patreal'}>{formatCurrency(Math.round((s.metrics?.realPatrimony) ?? realPatrimony))}</td>)}
-                    </tr>
-                    <tr>
-                      <td className="sticky left-0 bg-background z-10 font-medium">Aderência (patrimônio)</td>
-                      {snapshots.map(s => <td key={s.id + '-patc'}>{toPercentage((s.metrics?.patrimonioCompliance) ?? patrimonioCompliance)}</td>)}
-                    </tr>
+                    
                   </tbody>
                 </table>
               </div>

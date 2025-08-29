@@ -342,7 +342,7 @@ const ActionPlan: React.FC<ActionPlanProps> = ({ data, hideControls, sessionId }
                 <ListChecks size={28} className="text-accent" />
               </div>
             </div>
-            <h2 className="card-title-standard text-4xl">9. Plano de Ação</h2>
+            <h2 className="text-4xl font-bold mb-3">9. Plano de Ação</h2>
             <p className="card-description-standard max-w-2xl mx-auto">
               Conjunto de ações estratégicas para alcançar seus objetivos financeiros e patrimoniais
             </p>

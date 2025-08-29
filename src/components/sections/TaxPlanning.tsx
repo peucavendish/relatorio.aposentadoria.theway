@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Card,
   CardHeader,
@@ -18,6 +18,9 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { calculateIrpfComparison } from '@/utils/irpf';
+import { Input } from '@/components/ui/input';
+import { Card as UiCard } from '@/components/ui/card';
 
 interface TaxPlanningProps {
   data: any;
@@ -29,6 +32,7 @@ const TaxPlanning: React.FC<TaxPlanningProps> = ({ data, hideControls }) => {
   const { tributario } = data;
   const headerRef = useScrollAnimation();
   const diagnosticoRef = useScrollAnimation();
+  const comparativoRef = useScrollAnimation();
   const recomendacoesRef = useScrollAnimation();
   const { isCardVisible, toggleCardVisibility } = useCardVisibility();
 
@@ -61,6 +65,25 @@ const TaxPlanning: React.FC<TaxPlanningProps> = ({ data, hideControls }) => {
 
   const possuiRendaDeAluguel = rendas.some((r: any) => isAluguel(r?.descricao || r?.fonte));
 
+  // Comparativo IRPF - estados controlados com defaults baseados em dados existentes
+  const rendaTributavelAnual = Math.max(0, rendaTributavelMensal * 12);
+  const deducoesArray = Array.isArray(data?.tributario?.deducoes) ? data.tributario.deducoes : [];
+  const findDeduction = (tipo: string) => deducoesArray.find((d: any) => (d?.tipo || '').toLowerCase() === tipo.toLowerCase());
+  const pgblValorAnualDefault = Number(findDeduction('PGBL')?.valor || 0);
+
+  const [numDependentes, setNumDependentes] = useState<number>(Number(findDeduction('Dependentes')?.quantidade || 0));
+  const [gastoEducacao, setGastoEducacao] = useState<number>(Number(findDeduction('Educacao')?.valor || findDeduction('Educação')?.valor || 0));
+  const [gastoSaude, setGastoSaude] = useState<number>(Number(findDeduction('Saude')?.valor || findDeduction('Saúde')?.valor || 0));
+  const [pgblAnual, setPgblAnual] = useState<number>(pgblValorAnualDefault);
+
+  const irpf = useMemo(() => calculateIrpfComparison({
+    annualTaxableIncome: rendaTributavelAnual,
+    numberOfDependents: numDependentes || 0,
+    educationExpenses: gastoEducacao || 0,
+    healthExpenses: gastoSaude || 0,
+    pgblContributions: pgblAnual || 0,
+  }), [rendaTributavelAnual, numDependentes, gastoEducacao, gastoSaude, pgblAnual]);
+
   return (
     <section className="min-h-screen py-16 px-4" id="tax">
       <div className="section-container">
@@ -75,7 +98,7 @@ const TaxPlanning: React.FC<TaxPlanningProps> = ({ data, hideControls }) => {
                 <Calculator size={28} className="text-financial-info" />
               </div>
             </div>
-            <h2 className="text-4xl font-bold mb-3">7. Planejamento Tributário</h2>
+            <h2 className="text-4xl font-bold mb-3">8. Planejamento Tributário</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Estratégias para otimização fiscal e redução da carga tributária através de estruturação
               patrimonial e organização financeira.
@@ -166,6 +189,98 @@ const TaxPlanning: React.FC<TaxPlanningProps> = ({ data, hideControls }) => {
                 </div>
               </div>
             </CardContent>
+          </HideableCard>
+        </div>
+
+        {/* Comparativo IRPF: Completo vs Simplificado */}
+        <div
+          ref={comparativoRef as React.RefObject<HTMLDivElement>}
+          className="mb-8 animate-on-scroll delay-2"
+        >
+          <HideableCard
+            id="comparativo-irpf"
+            isVisible={isCardVisible("comparativo-irpf")}
+            onToggleVisibility={() => toggleCardVisibility("comparativo-irpf")}
+            hideControls={hideControls}
+          >
+            <CardHeader>
+              <CardTitle className="card-title-standard flex items-center gap-2">
+                <Calculator size={20} className="text-financial-info" />
+                Comparativo IRPF (Completo vs Simplificado)
+              </CardTitle>
+              <CardDescription>
+                Informe abaixo os dados anuais dedutíveis para comparar os modelos de declaração.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid md:grid-cols-4 gap-4">
+                <div>
+                  <div className="text-sm text-muted-foreground mb-1">Renda Tributável (ano)</div>
+                  <div className="font-medium">{formatCurrency(rendaTributavelAnual)}</div>
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Dependentes</label>
+                  <Input type="number" min={0} value={numDependentes}
+                    onChange={(e) => setNumDependentes(Number(e.target.value) || 0)} />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Gastos com Educação (ano)</label>
+                  <Input type="number" min={0} value={gastoEducacao}
+                    onChange={(e) => setGastoEducacao(Number(e.target.value) || 0)} />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1 block">Despesas de Saúde (ano)</label>
+                  <Input type="number" min={0} value={gastoSaude}
+                    onChange={(e) => setGastoSaude(Number(e.target.value) || 0)} />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-4 gap-4">
+                <div className="md:col-span-2">
+                  <label className="text-sm text-muted-foreground mb-1 block">Contribuições PGBL (ano)</label>
+                  <Input type="number" min={0} value={pgblAnual}
+                    onChange={(e) => setPgblAnual(Number(e.target.value) || 0)} />
+                </div>
+                <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
+                  <div className="text-sm text-muted-foreground mb-1">Modelo recomendável</div>
+                  <div className="font-medium">{irpf.recommendedModel}</div>
+                </div>
+                <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
+                  <div className="text-sm text-muted-foreground mb-1">Alíquota efetiva (recomendado)</div>
+                  <div className="font-medium">{(irpf.recommendedModel === 'Completo' ? irpf.complete.effectiveRate : irpf.recommendedModel === 'Simplificado' ? irpf.simplified.effectiveRate : Math.min(irpf.complete.effectiveRate, irpf.simplified.effectiveRate)).toLocaleString('pt-BR', { style: 'percent', minimumFractionDigits: 2 })}</div>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <UiCard className="p-4">
+                  <div className="text-sm text-muted-foreground mb-2">Modelo Completo</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>Base de Cálculo</div>
+                    <div className="text-right font-medium">{formatCurrency(irpf.complete.taxableBase)}</div>
+                    <div>Imposto Devido</div>
+                    <div className="text-right font-medium">{formatCurrency(irpf.complete.taxDue)}</div>
+                    <div>Alíquota Efetiva</div>
+                    <div className="text-right font-medium">{irpf.complete.effectiveRate.toLocaleString('pt-BR', { style: 'percent', minimumFractionDigits: 2 })}</div>
+                  </div>
+                </UiCard>
+                <UiCard className="p-4">
+                  <div className="text-sm text-muted-foreground mb-2">Modelo Simplificado</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>Base de Cálculo</div>
+                    <div className="text-right font-medium">{formatCurrency(irpf.simplified.taxableBase)}</div>
+                    <div>Imposto Devido</div>
+                    <div className="text-right font-medium">{formatCurrency(irpf.simplified.taxDue)}</div>
+                    <div>Alíquota Efetiva</div>
+                    <div className="text-right font-medium">{irpf.simplified.effectiveRate.toLocaleString('pt-BR', { style: 'percent', minimumFractionDigits: 2 })}</div>
+                  </div>
+                </UiCard>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <div className="text-xs text-muted-foreground">
+                Estimativa com base em faixas e limites aproximados. Confirme com a tabela vigente.
+              </div>
+            </CardFooter>
           </HideableCard>
         </div>
 

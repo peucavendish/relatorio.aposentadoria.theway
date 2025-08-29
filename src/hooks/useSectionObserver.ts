@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 export const sectionIds = [
   'cover',
   'summary',
+  'total-asset-allocation',
   'retirement',
   'beach-house',
-  'tax',
   'protection',
   'succession',
+  'tax',
   'action-plan',
 ];
 

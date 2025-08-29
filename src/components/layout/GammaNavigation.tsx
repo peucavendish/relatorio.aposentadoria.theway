@@ -1,17 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Home, PiggyBank, Home as House, Wallet, FileText, Shield, Users, ListChecks } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Home, PiggyBank, Home as House, Wallet, FileText, Shield, Users, ListChecks, PieChart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Define our navigation sections
 const sections = [
   { id: 'cover', label: 'Capa', icon: Home },
   { id: 'summary', label: 'Resumo Financeiro', icon: Wallet },
+  { id: 'total-asset-allocation', label: 'Gestão de Ativos', icon: PieChart },
   { id: 'retirement', label: 'Aposentadoria', icon: PiggyBank },
   { id: 'beach-house', label: 'Imóvel', icon: House },
-  { id: 'tax', label: 'Planejamento Tributário', icon: FileText },
   { id: 'protection', label: 'Proteção Patrimonial', icon: Shield },
   { id: 'succession', label: 'Planejamento Sucessório', icon: Users },
+  { id: 'tax', label: 'Planejamento Tributário', icon: FileText },
   { id: 'action-plan', label: 'Plano de Ação', icon: ListChecks }
 ];
 

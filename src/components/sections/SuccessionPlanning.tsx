@@ -75,7 +75,7 @@ const SuccessionPlanning: React.FC<SuccessionPlanningProps> = ({ data, hideContr
                 <Users size={28} className="text-accent" />
               </div>
             </div>
-            <h2 className="text-4xl font-bold mb-3">8. Planejamento Sucessório</h2>
+            <h2 className="text-4xl font-bold mb-3">7. Planejamento Sucessório</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Estratégias para garantir a transferência eficiente de patrimônio, preservar a harmonia familiar e minimizar custos tributários no processo sucessório.
             </p>

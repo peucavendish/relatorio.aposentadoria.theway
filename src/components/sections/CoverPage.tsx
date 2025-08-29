@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Card } from '../ui/card';
 import { Calendar, MapPin, User, Users, Target, PiggyBank } from 'lucide-react';
+import { Badge } from '../ui/badge';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { cn } from '@/lib/utils';
 
@@ -141,6 +142,28 @@ const CoverPage: React.FC<CoverPageProps> = ({
             <p className="mb-4">
               Os projetos de vida informados pelo cliente orientam as prioridades deste plano. Abaixo, um resumo dos principais objetivos considerados:
             </p>
+            {retirementSummary && (retirementSummary.rendaMensalDesejada || retirementSummary.idadeAposentadoria) && (
+              <div className="mb-4 rounded-md border border-accent/40 bg-accent/5 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Target size={16} className="text-accent" />
+                  <Badge variant="outline" className="bg-accent/10 text-accent border-accent/50">Aposentadoria — objetivo principal</Badge>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {retirementSummary.rendaMensalDesejada != null && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <PiggyBank size={16} className="text-accent" />
+                      <span>Renda passiva pretendida: <span className="font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(retirementSummary.rendaMensalDesejada || 0)}</span> / mês</span>
+                    </div>
+                  )}
+                  {retirementSummary.idadeAposentadoria != null && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar size={16} className="text-accent" />
+                      <span>Idade de aposentadoria pretendida: <span className="font-medium">{retirementSummary.idadeAposentadoria}</span> anos</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
             {projectsSummary.length > 0 ? (
               <ul className="mb-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {projectsSummary.slice(0, 6).map((p, i) => (
@@ -161,22 +184,6 @@ const CoverPage: React.FC<CoverPageProps> = ({
               <p className="mb-4 text-sm text-muted-foreground">Sem projetos de vida cadastrados até o momento.</p>
             )}
 
-            {retirementSummary && (retirementSummary.rendaMensalDesejada || retirementSummary.idadeAposentadoria) && (
-              <div className="mb-4 grid sm:grid-cols-2 gap-3">
-                {retirementSummary.rendaMensalDesejada != null && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <PiggyBank size={16} className="text-accent" />
-                    <span>Renda passiva pretendida: <span className="font-medium">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(retirementSummary.rendaMensalDesejada || 0)}</span> / mês</span>
-                  </div>
-                )}
-                {retirementSummary.idadeAposentadoria != null && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar size={16} className="text-accent" />
-                    <span>Idade de aposentadoria pretendida: <span className="font-medium">{retirementSummary.idadeAposentadoria}</span> anos</span>
-                  </div>
-                )}
-              </div>
-            )}
 
             <p>
               Navegue pelas seções usando a barra inferior ou os botões de navegação para

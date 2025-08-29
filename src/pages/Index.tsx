@@ -242,28 +242,28 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
                 <FinancialSummary data={getClientData().financas} hideControls={clientPropect} />
               </HideableSection>
 
-              <HideableSection sectionId="protection" hideControls={clientPropect}>
-                <ProtectionPlanning data={getClientData()} hideControls={clientPropect} />
-              </HideableSection>
-
               <HideableSection sectionId="total-asset-allocation" hideControls={clientPropect}>
                 <TotalAssetAllocation data={userReports} hideControls={clientPropect} />
-              </HideableSection>
-
-              <HideableSection sectionId="beach-house" hideControls={clientPropect}>
-                <BeachHouse data={userReports} hideControls={clientPropect} />
               </HideableSection>
 
               <HideableSection sectionId="retirement" hideControls={clientPropect}>
                 <RetirementPlanning data={getClientData().aposentadoria} hideControls={clientPropect} />
               </HideableSection>
 
-              <HideableSection sectionId="tax" hideControls={clientPropect}>
-                <TaxPlanning data={getClientData()} hideControls={clientPropect} />
+              <HideableSection sectionId="beach-house" hideControls={clientPropect}>
+                <BeachHouse data={userReports} hideControls={clientPropect} />
+              </HideableSection>
+
+              <HideableSection sectionId="protection" hideControls={clientPropect}>
+                <ProtectionPlanning data={getClientData()} hideControls={clientPropect} />
               </HideableSection>
 
               <HideableSection sectionId="succession" hideControls={clientPropect}>
                 <SuccessionPlanning data={getClientData()} hideControls={clientPropect} />
+              </HideableSection>
+
+              <HideableSection sectionId="tax" hideControls={clientPropect}>
+                <TaxPlanning data={getClientData()} hideControls={clientPropect} />
               </HideableSection>
 
               {false && (
@@ -277,9 +277,9 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
                   <HideableSection sectionId="action-plan" hideControls={clientPropect}>
                     <ActionPlan data={getClientData()} hideControls={clientPropect} sessionId={sessionId} />
                   </HideableSection>
-                  {/* <HideableSection sectionId="implementation-monitoring" hideControls={clientPropect}>
+                  <HideableSection sectionId="implementation-monitoring" hideControls={clientPropect}>
                     <ImplementationMonitoring data={getClientData()} hideControls={clientPropect} />
-                  </HideableSection> */}
+                  </HideableSection>
                 </>
               )}
 

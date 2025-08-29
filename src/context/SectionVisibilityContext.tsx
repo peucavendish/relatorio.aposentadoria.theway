@@ -10,15 +10,16 @@ interface SectionVisibilityContextType {
 
 const SectionVisibilityContext = createContext<SectionVisibilityContextType | undefined>(undefined);
 
-// Lista de todas as seções possíveis
+// Lista de todas as seções possíveis (ordem desejada)
 const ALL_SECTION_IDS = [
-    "summary",           // Resumo Financeiro
-    "retirement",        // Aposentadoria
-    "beach-house",       // Aquisição de Imóveis
-    "tax",              // Planejamento Tributário
-    "protection",        // Proteção Patrimonial
-    "succession",        // Planejamento Sucessório
-    "action-plan"        // Plano de Ação
+    "summary",                 // Resumo Financeiro
+    "total-asset-allocation", // Gestão de Ativos
+    "retirement",             // Aposentadoria
+    "beach-house",            // Aquisição de Imóveis
+    "protection",             // Proteção Patrimonial
+    "succession",             // Planejamento Sucessório
+    "tax",                    // Planejamento Tributário
+    "action-plan"             // Plano de Ação
 ];
 
 // Função para criar um objeto com todas as seções visíveis

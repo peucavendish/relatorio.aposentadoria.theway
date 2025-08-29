@@ -21,6 +21,12 @@ const SECTIONS_CONFIG = [
     icon: "📊"
   },
   {
+    id: "total-asset-allocation",
+    label: "Gestão de Ativos",
+    description: "Composição patrimonial consolidada",
+    icon: "📈"
+  },
+  {
     id: "retirement",
     label: "Aposentadoria",
     description: "Planejamento para aposentadoria",
@@ -31,12 +37,6 @@ const SECTIONS_CONFIG = [
     label: "Aquisição de Imóveis",
     description: "Planejamento para aquisição de imóveis",
     icon: "🏠"
-  },
-  {
-    id: "tax",
-    label: "Planejamento Tributário",
-    description: "Estratégias de otimização fiscal",
-    icon: "💰"
   },
   {
     id: "protection",
@@ -51,22 +51,22 @@ const SECTIONS_CONFIG = [
     icon: "👥"
   },
   {
-    id: "total-asset-allocation",
-    label: "Total Asset Allocation",
-    description: "Composição patrimonial consolidada",
-    icon: "📈"
-  },
-  {
-    id: "life-projects",
-    label: "Projetos de Vida",
-    description: "Iniciativas e objetivos pessoais",
-    icon: "🎯"
+    id: "tax",
+    label: "Planejamento Tributário",
+    description: "Estratégias de otimização fiscal",
+    icon: "💰"
   },
   {
     id: "action-plan",
     label: "Plano de Ação",
     description: "Ações prioritárias e cronograma",
     icon: "📋"
+  },
+  {
+    id: "life-projects",
+    label: "Projetos de Vida",
+    description: "Iniciativas e objetivos pessoais",
+    icon: "🎯"
   },
   {
     id: "implementation-monitoring",

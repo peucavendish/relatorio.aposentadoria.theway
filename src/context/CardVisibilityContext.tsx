@@ -25,7 +25,9 @@ const ALL_CARD_IDS = [
     "renda-despesas",
     "passivos",
     "ativos",
-    "financial-resumo"
+    "financial-resumo",
+    // novo card de comparativo IRPF
+    "comparativo-irpf"
 ];
 
 // Função para criar um objeto com todos os cards visíveis
@@ -78,7 +80,9 @@ export const CardVisibilityProvider: React.FC<{ children: React.ReactNode }> = (
                     "instrumentos-sucessorios": false,
                     "recomendacoes-adicionais": false,
                     "impacto-financeiro-sucessao": false,
-                    "previdencia-privada-sucessao": false
+                    "previdencia-privada-sucessao": false,
+                    // garante visibilidade do novo card
+                    "comparativo-irpf": false
                 };
 
                 await axios.post(`${apiUrl}/clients/update-hidden-cards`, {

@@ -30,7 +30,8 @@ const CurrencyInput: React.FC<{
   onChange: (value: number) => void;
   className?: string;
   id?: string;
-}> = ({ value, onChange, className, id }) => {
+  disabled?: boolean;
+}> = ({ value, onChange, className, id, disabled }) => {
   const [displayValue, setDisplayValue] = useState<string>(() => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -63,6 +64,9 @@ const CurrencyInput: React.FC<{
       value={displayValue}
       onChange={handleInputChange}
       className={className}
+      disabled={disabled}
+      readOnly={disabled}
+      aria-readonly={disabled ? true : undefined}
     />
   );
 };
@@ -202,13 +206,14 @@ const calculateRetirementProjection = (
 
   // Cálculo do capital necessário (usando a mesma abordagem da planilha)
   const calculaCapitalNecessario = () => {
+    const taxa_mensal_real_consumo = Math.pow(1 + rentabilidade_real_liquida_consumo, 1 / 12) - 1;
     if (isPerpetuity) {
-      // Para perpetuidade, o capital necessário é: saque_mensal / taxa_mensal
-      return saque_mensal_desejado / taxa_mensal_real;
+      // Para perpetuidade, o capital necessário é: saque_mensal / taxa_mensal (consumo)
+      return saque_mensal_desejado / taxa_mensal_real_consumo;
     } else {
       const meses_consumo = (expectativa_de_vida - idade_para_aposentar) * 12;
-      // Fórmula idêntica à usada na planilha (célula C9 em Apos(2))
-      return (saque_mensal_desejado * (1 - Math.pow(1 + taxa_mensal_real, -meses_consumo)) / taxa_mensal_real);
+      // Fórmula idêntica à usada na planilha (célula C9 em Apos(2)) com taxa de consumo
+      return (saque_mensal_desejado * (1 - Math.pow(1 + taxa_mensal_real_consumo, -meses_consumo)) / taxa_mensal_real_consumo);
     }
   };
 
@@ -322,13 +327,23 @@ const calculateRetirementProjection = (
       // Registra o capital após os eventos (para o gráfico)
       fluxo.push({ idade, capital });
 
-      // Rendimento anual
-      const rendimento = capital * rentabilidade_real_liquida_acumulacao;
-      // Aporte anual
-      const aporteAnual = aporteMensal * 12;
+      // Capitalização mensal equivalente para 12 meses
+      const taxaMensalReal = Math.pow(1 + rentabilidade_real_liquida_acumulacao, 1 / 12) - 1;
+      const fatorAnual = Math.pow(1 + taxaMensalReal, 12);
 
-      // Atualiza o capital com rendimento e aporte
-      const capitalFinal = capital + rendimento + aporteAnual;
+      // Aportes mensais ao longo do ano (valor futuro no fim dos 12 meses)
+      const aporteAnual = aporteMensal * 12;
+      const fvAportes = taxaMensalReal === 0
+        ? aporteAnual
+        : aporteMensal * ((fatorAnual - 1) / taxaMensalReal);
+
+      // Rendimento separando capital inicial e crescimento sobre os aportes do ano
+      const rendimentoCapital = capital * (fatorAnual - 1);
+      const rendimentoAportes = fvAportes - aporteAnual;
+      const rendimentoTotal = rendimentoCapital + rendimentoAportes;
+
+      // Atualiza o capital com rendimento total e o aporte efetivado no ano
+      const capitalFinal = capital + aporteAnual + rendimentoTotal;
 
       // Registra no fluxo de caixa
       fluxoCaixaAnual.push({
@@ -337,7 +352,7 @@ const calculateRetirementProjection = (
         capitalInicial,
         eventos: delta,
         aporte: aporteAnual,
-        rendimento,
+        rendimento: rendimentoTotal,
         saque: 0,
         capitalFinal
       });
@@ -363,9 +378,24 @@ const calculateRetirementProjection = (
         // Registra o capital após os eventos (para o gráfico)
         fluxo.push({ idade, capital: capital > 0 ? capital : 0 });
 
-        // Rendimento durante a fase de consumo
-        const rendimento = capital * rentabilidade_real_liquida_consumo;
-        const capitalFinal = capital + rendimento - saqueAnual;
+        // Capitalização mensal equivalente na fase de consumo
+        const taxaMensalConsumo = Math.pow(1 + rentabilidade_real_liquida_consumo, 1 / 12) - 1;
+        const fatorAnualConsumo = Math.pow(1 + taxaMensalConsumo, 12);
+        const saqueMensal = saque_mensal_desejado;
+        const fvSaques = taxaMensalConsumo === 0
+          ? saqueMensal * 12
+          : saqueMensal * ((fatorAnualConsumo - 1) / taxaMensalConsumo);
+
+        const rendimentoCapital = capital * (fatorAnualConsumo - 1);
+        let saqueEfetivo = fvSaques; // valor futuro dos 12 saques mensais
+        let capitalFinal = capital + rendimentoCapital - saqueEfetivo;
+
+        // Se o capital ficaria negativo, limitamos o saque do último ano para zerar
+        if (capitalFinal < 0) {
+          saqueEfetivo = Math.max(0, capital + rendimentoCapital);
+          capitalFinal = 0;
+          if (idadeEsgotamento === null) idadeEsgotamento = idade;
+        }
 
         fluxoCaixaAnual.push({
           idade,
@@ -373,8 +403,8 @@ const calculateRetirementProjection = (
           capitalInicial,
           eventos: delta,
           aporte: 0,
-          rendimento,
-          saque: saqueAnual,
+          rendimento: rendimentoCapital,
+          saque: saqueEfetivo,
           capitalFinal
         });
 
@@ -401,16 +431,31 @@ const calculateRetirementProjection = (
             eventos: delta,
             aporte: 0,
             rendimento: 0,
-            saque: saqueAnual,
+            saque: saque_mensal_desejado * 12,
             capitalFinal: capital
           });
           idade++;
           continue;
         }
 
-        // Rendimento durante a fase de consumo
-        const rendimento = capital * rentabilidade_real_liquida_consumo;
-        const capitalFinal = capital + rendimento - saqueAnual;
+        // Capitalização mensal equivalente na fase de consumo
+        const taxaMensalConsumo = Math.pow(1 + rentabilidade_real_liquida_consumo, 1 / 12) - 1;
+        const fatorAnualConsumo = Math.pow(1 + taxaMensalConsumo, 12);
+        const saqueMensal = saque_mensal_desejado;
+        const fvSaques = taxaMensalConsumo === 0
+          ? saqueMensal * 12
+          : saqueMensal * ((fatorAnualConsumo - 1) / taxaMensalConsumo);
+
+        const rendimentoCapital = capital * (fatorAnualConsumo - 1);
+        let saqueEfetivo = fvSaques; // valor futuro dos 12 saques mensais
+        let capitalFinal = capital + rendimentoCapital - saqueEfetivo;
+
+        // Se o capital ficaria negativo, limitamos o saque do último ano para zerar
+        if (capitalFinal < 0) {
+          saqueEfetivo = Math.max(0, capital + rendimentoCapital);
+          capitalFinal = 0;
+          if (idadeEsgotamento === null) idadeEsgotamento = idade;
+        }
 
         fluxoCaixaAnual.push({
           idade,
@@ -418,8 +463,8 @@ const calculateRetirementProjection = (
           capitalInicial,
           eventos: delta,
           aporte: 0,
-          rendimento,
-          saque: saqueAnual,
+          rendimento: rendimentoCapital,
+          saque: saqueEfetivo,
           capitalFinal
         });
 
@@ -903,51 +948,13 @@ const RetirementProjectionChart: React.FC<RetirementProjectionChartProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="aporteMensal">Aporte Mensal</Label>
+              <Label htmlFor="aporteMensal">Aporte Mensal (calculado)</Label>
               <CurrencyInput
                 id="aporteMensal"
                 value={aporteMensal}
-                onChange={(value) => {
-                  setAporteMensal(value);
-
-                  // Calcula o capital acumulado na idade de aposentadoria
-                  const mesesAcumulacao = (idadeAposentadoria - currentAge) * 12;
-                  const taxaMensal = Math.pow(1 + taxaRetorno, 1 / 12) - 1;
-
-                  // FV = PV * (1 + i)^n + PMT * ((1 + i)^n - 1) / i
-                  const capitalAcumulado = currentPortfolio * Math.pow(1 + taxaMensal, mesesAcumulacao) +
-                    value * (Math.pow(1 + taxaMensal, mesesAcumulacao) - 1) / taxaMensal;
-
-                  // Calcula a renda mensal que pode ser sustentada com esse capital
-                  const mesesConsumo = (lifeExpectancy - idadeAposentadoria) * 12;
-                  const rendaMensalCalculada = capitalAcumulado * taxaMensal / (1 - Math.pow(1 + taxaMensal, -mesesConsumo));
-
-                  setRendaMensal(Math.round(rendaMensalCalculada));
-
-                  // Recalcula a projeção com os novos valores
-                  const result = calculateRetirementProjection(
-                    currentAge,
-                    idadeAposentadoria,
-                    lifeExpectancy,
-                    currentPortfolio,
-                    value,
-                    Math.round(rendaMensalCalculada),
-                    taxaRetorno,
-                    taxaRetorno,
-                    liquidityEvents,
-                    isPerpetuity
-                  );
-
-                  // Atualiza o gráfico com os novos dados
-                  setProjection({
-                    ...result,
-                    fluxoCapital: result.fluxoCapital.map(item => ({
-                      age: item.idade,
-                      capital: Math.round(item.capital)
-                    }))
-                  });
-                }}
+                onChange={() => { /* bloqueado */ }}
                 className="h-9"
+                disabled
               />
             </div>
 
