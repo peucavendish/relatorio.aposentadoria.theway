@@ -45,8 +45,17 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
   };
 
   const composition = data?.financas?.composicao_patrimonial || {};
-  const totalComposition = Object.values(composition).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0);
-  const compositionChartData = Object.entries(composition)
+
+  // Aplicar condição para Investimentos (subtrair Previdência e Internacional)
+  const compositionAdjusted = { ...composition };
+  if (compositionAdjusted['Investimentos']) {
+    const valorPrevidencia = compositionAdjusted['Previdência'] || 0;
+    const valorInternacional = compositionAdjusted['Internacional'] || 0;
+    compositionAdjusted['Investimentos'] = Math.max(0, compositionAdjusted['Investimentos'] - valorPrevidencia - valorInternacional);
+  }
+
+  const totalComposition = Object.values(compositionAdjusted).reduce((sum: number, value: any) => sum + (typeof value === 'number' ? value : 0), 0);
+  const compositionChartData = Object.entries(compositionAdjusted)
     .map(([key, value]: [string, any]) => {
       const raw = typeof value === 'number' ? value : 0;
       return {
@@ -157,8 +166,8 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
     : shownDeltaExteriorPct === 0
       ? 'bg-emerald-500/10 text-emerald-700'
       : (Math.abs(shownDeltaExteriorPct) >= 5
-          ? 'bg-financial-danger/10 text-financial-danger'
-          : 'bg-financial-warning/10 text-financial-warning');
+        ? 'bg-financial-danger/10 text-financial-danger'
+        : 'bg-financial-warning/10 text-financial-warning');
 
 
   return (
@@ -217,15 +226,33 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
                   <div>
                     <h4 className="card-title-standard text-lg">Ativos</h4>
                     <div className="card-list">
-                      {ativos.map((asset: any, index: number) => (
-                        <div key={index} className="card-list-item">
-                          <span className="card-list-label">{asset?.tipo}{asset?.classe ? ` - ${asset.classe}` : ''}</span>
-                          <div className="card-flex-between">
-                            <span className="card-list-value">{formatCurrency(Number(asset?.valor) || 0)}</span>
-                            <span className="card-list-percentage">({totalAtivosLista > 0 ? Math.round(((Number(asset?.valor) || 0) / totalAtivosLista) * 100) : 0}%)</span>
+                      {ativos.map((asset: any, index: number) => {
+                        // Calcular valor para Investimentos - Financeiros
+                        let valorExibido = Number(asset?.valor) || 0;
+
+                        if (asset?.tipo === 'Investimentos' && asset?.classe === 'Financeiros') {
+                          // Encontrar valores de Previdência - Privada
+                          const previdenciaPrivada = ativos.find(a => a.tipo === 'Previdência' && a.classe === 'Privada');
+                          const valorPrevidencia = previdenciaPrivada ? Number(previdenciaPrivada.valor) || 0 : 0;
+
+                          // Encontrar valores de Internacional - Investimentos
+                          const internacionalInvestimentos = ativos.find(a => a.tipo === 'Internacional' && a.classe === 'Investimentos');
+                          const valorInternacional = internacionalInvestimentos ? Number(internacionalInvestimentos.valor) || 0 : 0;
+
+                          // Subtrair os valores de Previdência - Privada e Internacional - Investimentos
+                          valorExibido = valorExibido - valorPrevidencia - valorInternacional;
+                        }
+
+                        return (
+                          <div key={index} className="card-list-item">
+                            <span className="card-list-label">{asset?.tipo}{asset?.classe ? ` - ${asset.classe}` : ''}</span>
+                            <div className="card-flex-between">
+                              <span className="card-list-value">{formatCurrency(valorExibido)}</span>
+                              <span className="card-list-percentage">({totalAtivosLista > 0 ? Math.round((valorExibido / totalAtivosLista) * 100) : 0}%)</span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                       <div className="card-divider card-list-item">
                         <span className="font-semibold">Total de Ativos</span>
                         <span className="font-semibold">{formatCurrency(totalAtivosLista)}</span>
@@ -441,7 +468,7 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
                   </div>
                 </div>
 
-                
+
               </div>
 
               {/* Insights e Recomendações */}
