@@ -193,7 +193,7 @@ const TaxPlanning: React.FC<TaxPlanningProps> = ({ data, hideControls }) => {
         </div>
 
         {/* Comparativo IRPF: Completo vs Simplificado */}
-        <div
+        {/* <div
           ref={comparativoRef as React.RefObject<HTMLDivElement>}
           className="mb-8 animate-on-scroll delay-2"
         >
@@ -282,7 +282,7 @@ const TaxPlanning: React.FC<TaxPlanningProps> = ({ data, hideControls }) => {
               </div>
             </CardFooter>
           </HideableCard>
-        </div>
+        </div> */}
 
         {/* Recomendações Estratégicas */}
         <div
