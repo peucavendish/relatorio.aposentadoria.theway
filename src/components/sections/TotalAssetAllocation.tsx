@@ -393,7 +393,7 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
 
                 <div className="text-center">
                   <h3 className="card-metric-label">Diversificação</h3>
-                  <div className="text-3xl font-medium mb-1 text-black">{diversificacao}</div>
+                  <div className="text-3xl font-medium mb-1 text-foreground">{diversificacao}</div>
                   <div className="text-sm text-muted-foreground">Classes de ativos</div>
                 </div>
               </div>
@@ -407,7 +407,7 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
                     <div className="p-4 bg-muted/10 rounded-lg border border-border/50">
                       <div className="flex justify-between items-center">
                         <span className="font-medium">Horizonte de Cobertura</span>
-                        <span className="text-black font-medium">{horizonteCobertura} meses</span>
+                        <span className="text-foreground font-medium">{horizonteCobertura} meses</span>
                       </div>
                       <div className="flex justify-between text-[11px] text-muted-foreground mt-1">
                         <span>Ativos de curto prazo: {numeroAtivosCurtoPrazo}</span>
@@ -415,7 +415,7 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
                       </div>
                       <div className="flex justify-between text-[11px] text-muted-foreground mt-1">
                         <span></span>
-                        <span className="text-black font-medium">Recomendação Alta Vista: {metaCoberturaMeses} meses</span>
+                        <span className="text-foreground font-medium">Recomendação Alta Vista: {metaCoberturaMeses} meses</span>
                       </div>
                       <div className="text-[11px] text-muted-foreground mt-1">Cálculo: "Curto Prazo - Alta Liquidez" / Despesas mensais</div>
                       <div className="mt-3">

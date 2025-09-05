@@ -219,14 +219,14 @@ const FinancialSummary: React.FC<FinancialSummaryProps> = ({ data, hideControls 
                   <div className="p-4 bg-muted/10 rounded-lg border border-border/50">
                     <div className="flex justify-between items-center">
                       <span className="font-medium">% de Poupança</span>
-                      <span className="text-black font-medium">{poupancaPercent}%</span>
+                      <span className="text-foreground font-medium">{poupancaPercent}%</span>
                     </div>
                     <div className="text-[11px] text-muted-foreground mt-1">Cálculo: Excedente Mensal / Renda Mensal</div>
                   </div>
                   <div className="p-4 bg-muted/10 rounded-lg border border-border/50">
                     <div className="flex justify-between items-center">
                       <span className="font-medium">% de Endividamento</span>
-                      <span className="text-black font-medium">{endividamentoPercent}%</span>
+                      <span className="text-foreground font-medium">{endividamentoPercent}%</span>
                     </div>
                     <div className="text-[11px] text-muted-foreground mt-1">Cálculo: Total de Passivos / Total de Ativos</div>
                   </div>
