@@ -55,10 +55,13 @@ const SecurityIndicator: React.FC<SecurityIndicatorProps> = ({ scoreFinanceiro, 
 						<CardContent>
 							<div className="grid md:grid-cols-2 gap-6 items-center">
 								<div className="flex items-center justify-center">
-									<div className="relative w-32 h-32 md:w-36 md:h-36 flex items-center justify-center rounded-full border-8 border-accent/20">
+									<div className="relative w-32 h-32 md:w-36 md:h-36 flex items-center justify-center rounded-full border-8" style={{ borderColor: '#36557C20' }}>
 										<div
-											className="absolute inset-0 rounded-full border-8 border-accent"
-											style={{ clipPath: `inset(0 ${100 - (notaPonderada ?? 0)}% 0 0)` }}
+											className="absolute inset-0 rounded-full border-8"
+											style={{ 
+												borderColor: '#36557C',
+												clipPath: `inset(0 ${100 - (notaPonderada ?? 0)}% 0 0)` 
+											}}
 										/>
 										<div className="text-center">
 											<div className="text-3xl font-bold md:text-4xl">{notaPonderada}</div>
@@ -70,7 +73,7 @@ const SecurityIndicator: React.FC<SecurityIndicatorProps> = ({ scoreFinanceiro, 
 									<ul className="space-y-2">
 										{elementosAvaliados.map((elemento, index) => (
 											<li key={index} className="flex items-start gap-2">
-												<CheckCircle className="text-accent h-5 w-5 mt-0.5 flex-shrink-0" />
+												<CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" style={{ color: '#36557C' }} />
 												<span className="text-sm md:text-base">{elemento}</span>
 											</li>
 										))}

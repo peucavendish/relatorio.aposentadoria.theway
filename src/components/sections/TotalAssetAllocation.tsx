@@ -25,16 +25,17 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
   const balancoRef = useScrollAnimation();
   const { isCardVisible, toggleCardVisibility } = useCardVisibility();
 
-  // Cores padronizadas por tipo de ativo
+  // Cores padronizadas por tipo de ativo - apenas as 4 tonalidades especificadas
   const assetColors: Record<string, string> = {
-    'Imóveis': '#60A5FA',
-    'Investimentos': '#34D399',
-    'Participação em empresa': '#A78BFA',
-    'Outros': '#F59E0B',
-    'Veículos': '#EF4444',
-    'Obras de arte': '#EC4899',
-    'Joias': '#8B5CF6',
-    'Colecionáveis': '#F97316',
+    'Imóveis': '#21887C',           // Verde
+    'Investimentos': '#36557C',     // Azul
+    'Participação em empresa': '#21887C',  // Verde
+    'Outros': '#21887C',            // Verde
+    'Veículos': '#E52B50',          // Vermelho
+    'Obras de arte': '#21887C',     // Verde
+    'Joias': '#21887C',             // Verde
+    'Colecionáveis': '#21887C',     // Verde
+    'Reserva de Emergência': '#21887C',  // Verde
   };
 
   const getColorForAssetType = (assetType: string): string => {
@@ -136,8 +137,8 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
   const horizonteCobertura = coberturaMeses;
   const metaCoberturaMeses = 12;
   const progressoCoberturaPct = Math.min(100, Math.round((coberturaMeses / metaCoberturaMeses) * 100));
-  const progressoCor: 'success' | 'warning' | 'danger' =
-    coberturaMeses >= 12 ? 'success' : coberturaMeses >= 6 ? 'warning' : 'danger';
+  const progressoCor: 'success' | 'warning' | 'danger' | 'gold' =
+    coberturaMeses >= 12 ? 'gold' : coberturaMeses >= 6 ? 'warning' : 'danger';
 
   // Exposição Geográfica dos Investimentos (Brasil vs Exterior)
   // Denominador: valor total de "Investimentos" informado em composicao_patrimonial
@@ -159,15 +160,15 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
   const deltaExteriorPct = recomendacaoExteriorPct - pctExterior;
 
   const geoExposureData = [
-    { name: 'Brasil', value: pctBrasil, color: '#3B82F6', rawValue: formatCurrency(valorBrasil), raw: valorBrasil },
-    { name: 'Exterior', value: pctExterior, color: '#10B981', rawValue: formatCurrency(valorExterior), raw: valorExterior }
+    { name: 'Brasil', value: pctBrasil, color: '#36557C', rawValue: formatCurrency(valorBrasil), raw: valorBrasil },
+    { name: 'Exterior', value: pctExterior, color: '#B8860B', rawValue: formatCurrency(valorExterior), raw: valorExterior }
   ].filter(i => i.raw > 0);
 
   const alertClass = deltaExteriorPct === 0
-    ? 'bg-emerald-500/10 text-emerald-700'
+    ? 'bg-[#21887C]/10 text-[#21887C]'
     : (Math.abs(deltaExteriorPct) >= 5
-      ? 'bg-financial-danger/10 text-financial-danger'
-      : 'bg-financial-warning/10 text-financial-warning');
+      ? 'bg-[#E52B50]/10 text-[#E52B50]'
+      : 'bg-[#E52B50]/10 text-[#E52B50]');
 
 
   return (
@@ -335,11 +336,13 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
                   <div className="grid grid-cols-3 gap-3">
                   <div className="p-3 rounded-lg border border-border/50 bg-muted/10">
                   <div className="text-xs text-muted-foreground">Exterior</div>
-                  <div className="text-lg font-semibold">{formatCurrency(valorExterior)} <span className="text-sm text-muted-foreground">({pctExterior}%)</span></div>
+                  <div className="text-lg font-semibold">{formatCurrency(valorExterior)}</div>
+                  <div className="text-sm text-muted-foreground">({pctExterior}%)</div>
                   </div>
                   <div className="p-3 rounded-lg border border-border/50 bg-muted/10">
                   <div className="text-xs text-muted-foreground">Brasil</div>
-                  <div className="text-lg font-semibold">{formatCurrency(valorBrasil)} <span className="text-sm text-muted-foreground">({pctBrasil}%)</span></div>
+                  <div className="text-lg font-semibold">{formatCurrency(valorBrasil)}</div>
+                  <div className="text-sm text-muted-foreground">({pctBrasil}%)</div>
                   </div>
                   <div className="p-3 rounded-lg border border-border/50 bg-muted/10">
                   <div className="text-xs text-muted-foreground">Recomendação Exterior</div>
@@ -361,16 +364,16 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
                   <div className="mt-3">
                   <div className="text-xs text-muted-foreground mb-1">Comparação vs. Meta (18% no exterior)</div>
                   <div className="relative h-3 rounded-full bg-muted overflow-hidden">
-                  <div className="absolute inset-y-0 left-0 bg-blue-500" style={{ width: `${pctBrasil}%` }} />
-                  <div className="absolute inset-y-0" style={{ left: `${pctBrasil}%`, width: `${pctExterior}%`, backgroundColor: '#10B981' }} />
+                  <div className="absolute inset-y-0 left-0" style={{ width: `${pctExterior}%`, backgroundColor: '#B8860B' }} />
+                  <div className="absolute inset-y-0" style={{ left: `${pctExterior}%`, width: `${pctBrasil}%`, backgroundColor: '#36557C' }} />
                     <div className="absolute -top-1 bottom-0" style={{ left: `${recomendacaoExteriorPct}%` }}>
-                        <div className="w-0.5 h-4 bg-foreground/70"></div>
+                        <div className="w-0.5 h-4" style={{ backgroundColor: pctExterior >= recomendacaoExteriorPct ? '#21887C' : '#B8860B' }}></div>
                           </div>
                     </div>
                   <div className="flex justify-between text-[11px] text-muted-foreground mt-1">
-                    <span>Brasil {pctBrasil}%</span>
+                    <span>Exterior {pctExterior}%</span>
                   <span>Meta Exterior 18%</span>
-                  <span>Exterior {pctExterior}%</span>
+                  <span>Brasil {pctBrasil}%</span>
                   </div>
                   </div>
                   </div>

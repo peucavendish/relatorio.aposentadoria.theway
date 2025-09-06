@@ -8,7 +8,7 @@ interface ProgressBarProps {
   className?: string;
   showValue?: boolean;
   size?: 'sm' | 'md' | 'lg';
-  color?: 'default' | 'success' | 'warning' | 'danger';
+  color?: 'default' | 'success' | 'warning' | 'danger' | 'gold';
   label?: string;
 }
 
@@ -33,7 +33,8 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
     default: 'bg-accent',
     success: 'bg-financial-success',
     warning: 'bg-financial-warning',
-    danger: 'bg-financial-danger'
+    danger: 'bg-financial-danger',
+    gold: 'bg-[#B8860B]'
   };
   
   return (

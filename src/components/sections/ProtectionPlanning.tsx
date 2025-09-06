@@ -201,9 +201,9 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
                   <div className="p-4 border rounded-lg">
                     <ChartContainer
                       config={{
-                        Total: { label: 'Patrimônio total', color: '#3B82F6' },
-                        Custo: { label: 'Custo de transmissão', color: '#EF4444' },
-                        Transmissivel: { label: 'Patrimônio transmissível', color: '#10B981' },
+                        Total: { label: 'Patrimônio total', color: '#36557C' },
+                        Custo: { label: 'Custo de transmissão', color: '#E52B50' },
+                        Transmissivel: { label: 'Patrimônio transmissível', color: '#21887C' },
                       }}
                       className="h-80 w-full"
                     >
@@ -213,9 +213,9 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
                           <YAxis tickFormatter={(v) => `R$ ${(v / 1_000_000).toFixed(1)}Mi`} />
                           <ChartTooltip content={<ChartTooltipContent />} />
                           <ChartLegend content={<ChartLegendContent />} />
-                          <Bar dataKey="Total" fill="#3B82F6" />
-                          <Bar dataKey="Custo" fill="#EF4444" />
-                          <Bar dataKey="Transmissivel" fill="#10B981" />
+                          <Bar dataKey="Total" fill="#36557C" />
+                          <Bar dataKey="Custo" fill="#E52B50" />
+                          <Bar dataKey="Transmissivel" fill="#21887C" />
                         </ReBarChart>
                       </ResponsiveContainer>
                     </ChartContainer>

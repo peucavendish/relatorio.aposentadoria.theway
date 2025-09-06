@@ -106,7 +106,7 @@ const LifeProjects: React.FC<LifeProjectsProps> = ({ data, hideControls }) => {
                         {p.status && (
                           <div className="flex items-center gap-1">
                             {String(p.status).toLowerCase().includes('concl') ? (
-                              <CheckCircle2 size={14} className="text-green-600" />
+                              <CheckCircle2 size={14} className="text-[#21887C]" />
                             ) : (
                               <Clock3 size={14} className="text-yellow-600" />
                             )}

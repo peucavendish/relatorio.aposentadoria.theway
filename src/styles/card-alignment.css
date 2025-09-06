@@ -178,7 +178,7 @@
 }
 
 .card-alert-info {
-    @apply bg-blue-50 border-blue-200 text-blue-800;
+    @apply bg-[#36557C]/5 border-[#36557C]/20 text-[#36557C];
 }
 
 .card-alert-warning {
@@ -186,11 +186,13 @@
 }
 
 .card-alert-success {
-    @apply bg-green-50 border-green-200 text-green-800;
+    @apply border-[#21887C]/20 text-[#21887C];
+    background-color: #21887C10;
 }
 
 .card-alert-error {
-    @apply bg-red-50 border-red-200 text-red-800;
+    @apply border-[#E52B50]/20 text-[#E52B50];
+    background-color: #E52B5010;
 }
 
 /* Standard section container */

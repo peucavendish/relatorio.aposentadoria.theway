@@ -87,7 +87,7 @@ const CRONOGRAMA_INICIAL = [
     titulo: "Projetos Imobilizados",
     descricao: "Estruturação e otimização de investimentos em imóveis",
     icone: "🏠",
-    cor: "bg-blue-500/10 text-blue-600 border-blue-200",
+    cor: "bg-[#36557C]/10 text-[#36557C] border-[#36557C]/20",
     acoes: [
       "Análise da carteira imobiliária atual",
       "Identificação de oportunidades de otimização",
@@ -113,7 +113,7 @@ const CRONOGRAMA_INICIAL = [
     titulo: "Proteção Patrimonial",
     descricao: "Implementação de estratégias para proteção do patrimônio",
     icone: "🛡️",
-    cor: "bg-green-500/10 text-green-600 border-green-200",
+    cor: "bg-[#21887C]/10 text-[#21887C] border-[#21887C]/20",
     acoes: [
       "Constituição de holding patrimonial",
       "Estruturação de proteções jurídicas",
@@ -416,10 +416,10 @@ const ActionPlan: React.FC<ActionPlanProps> = ({ data, hideControls, sessionId }
               >
                 {activatedCards.has(fase.id) && (
                   <div className="absolute top-3 right-3 z-10">
-                    <div className="bg-green-500 text-white rounded-full p-1.5 shadow-lg">
+                    <div className="rounded-full p-1.5 shadow-lg" style={{ backgroundColor: '#21887C', color: 'white' }}>
                       <Check className="h-4 w-4" />
                     </div>
-                    <div className="absolute top-8 right-0 bg-green-500 text-white text-xs px-2 py-1 rounded whitespace-nowrap shadow-lg">
+                    <div className="absolute top-8 right-0 text-white text-xs px-2 py-1 rounded whitespace-nowrap shadow-lg" style={{ backgroundColor: '#21887C' }}>
                       Área acionada
                     </div>
                   </div>

@@ -685,8 +685,8 @@ const chartConfig = {
   capital: {
     label: "Patrimônio acumulado",
     theme: {
-      light: "#7EC866",
-      dark: "#7EC866",
+      light: "#B8860B",
+      dark: "#B8860B",
     }
   },
 };
@@ -1312,7 +1312,7 @@ const RetirementProjectionChart: React.FC<RetirementProjectionChartProps> = ({
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={saveEditLiquidityEvent}
-                            className="text-green-600 hover:text-green-800 text-xs font-medium"
+                            className="text-[#21887C] hover:text-[#1a6b5f] text-xs font-medium"
                           >Salvar</button>
                           <button
                             onClick={cancelEditLiquidityEvent}
@@ -1328,7 +1328,7 @@ const RetirementProjectionChart: React.FC<RetirementProjectionChartProps> = ({
                       <td className="py-2 px-3 text-center">{event.endAge != null ? `${event.endAge} anos` : '-'}</td>
                       <td className="py-2 px-3 text-center">{(event.recurrence || 'once') === 'once' ? 'Única' : (event.recurrence === 'annual' ? 'Anual' : 'Mensal')}</td>
                       <td className="py-2 px-3 text-center">
-                        <span className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-medium ${event.isPositive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        <span className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-medium ${event.isPositive ? 'text-[#21887C]' : 'text-[#E52B50]'}`} style={{ backgroundColor: event.isPositive ? '#21887C20' : '#E52B5020' }}>
                           {event.isPositive ? 'Entrada' : 'Saída'}
                         </span>
                       </td>
@@ -1345,12 +1345,12 @@ const RetirementProjectionChart: React.FC<RetirementProjectionChartProps> = ({
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => startEditLiquidityEvent(event)}
-                            className="text-blue-600 hover:text-blue-800"
+                            className="text-[#36557C] hover:text-[#2a4260]"
                             title="Editar"
                           >✎</button>
                           <button
                             onClick={() => handleRemoveLiquidityEvent(event.id)}
-                            className="text-red-500 hover:text-red-700"
+                            className="text-[#E52B50] hover:text-[#c41e3a]"
                             title="Remover evento"
                           >
                             ×
@@ -1498,7 +1498,7 @@ const RetirementProjectionChart: React.FC<RetirementProjectionChartProps> = ({
                                 {activeEvents.map((e) => (
                                   <div key={e.id} className="flex items-center justify-between gap-3 text-xs">
                                     <div className="flex items-center gap-1.5">
-                                      <div className={`w-2 h-2 rounded-full ${e.isPositive ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                                      <div className={`w-2 h-2 rounded-full`} style={{ backgroundColor: e.isPositive ? '#21887C' : '#E52B50' }} />
                                       <span className="text-muted-foreground">{e.name}</span>
                                     </div>
                                     <span className="font-medium tabular-nums">{formatCurrency(e.value)}</span>
@@ -1518,13 +1518,13 @@ const RetirementProjectionChart: React.FC<RetirementProjectionChartProps> = ({
                 {/* Linha de referência para a idade de aposentadoria */}
                 <ReferenceLine
                   x={idadeAposentadoria}
-                  stroke="#7EC866"
+                  stroke="#B8860B"
                   strokeDasharray="3 3"
                   label={({ viewBox }: any) => {
                     const x = (viewBox?.x ?? 0) + (viewBox?.width ?? 0) - 6;
                     const y = (viewBox?.y ?? 0) + 12;
                     return (
-                      <text x={x} y={y} fill="#7EC866" fontSize={11} textAnchor="end">
+                      <text x={x} y={y} fill="#B8860B" fontSize={11} textAnchor="end">
                         {`Aposentadoria (${idadeAposentadoria} anos)`}
                       </text>
                     );
@@ -1535,8 +1535,8 @@ const RetirementProjectionChart: React.FC<RetirementProjectionChartProps> = ({
                   type="monotone"
                   dataKey="capital"
                   name="Patrimônio acumulado"
-                  stroke="#7EC866"
-                  fill="#7EC866"
+                  stroke="#B8860B"
+                  fill="#B8860B"
                   fillOpacity={0.2}
                   strokeWidth={2}
                   dot={false}
@@ -1565,7 +1565,7 @@ const RetirementProjectionChart: React.FC<RetirementProjectionChartProps> = ({
                     <ReferenceLine
                       key={event.id}
                       x={age}
-                      stroke={event.isPositive ? "#22c55e" : "#ef4444"}
+                      stroke={event.isPositive ? "#21887C" : "#E52B50"}
                       strokeDasharray="3 3"
                       label={null}
                     />
@@ -1585,10 +1585,15 @@ const RetirementProjectionChart: React.FC<RetirementProjectionChartProps> = ({
               .map((e) => (
                 <div
                   key={e.id}
-                  className={`px-2 py-1 rounded-full border text-xs flex items-center gap-2 ${e.isPositive ? 'border-emerald-400 text-emerald-700 bg-emerald-50/60' : 'border-rose-400 text-rose-700 bg-rose-50/60'}`}
+                  className={`px-2 py-1 rounded-full border text-xs flex items-center gap-2`}
+                  style={{ 
+                    borderColor: e.isPositive ? '#21887C' : '#E52B50',
+                    color: e.isPositive ? '#21887C' : '#E52B50',
+                    backgroundColor: e.isPositive ? '#21887C20' : '#E52B5020'
+                  }}
                   title={`${e.name} • ${e.recurrence && e.recurrence !== 'once' ? 'Recorrente' : 'Único'}`}
                 >
-                  <span className={`inline-block w-2 h-2 rounded-full ${e.isPositive ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+                  <span className={`inline-block w-2 h-2 rounded-full`} style={{ backgroundColor: e.isPositive ? '#21887C' : '#E52B50' }}></span>
                   <span className="font-medium">{e.name}</span>
                   <span className="mx-1">—</span>
                   <span>{formatCurrency(e.value)}</span>

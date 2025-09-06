@@ -469,7 +469,7 @@ const FinancingSimulator: React.FC<FinancingSimulatorProps> = ({
                   </td>
                   <td className="py-2 px-3 text-right">{formatCurrency(estrategia.custoTotal)}</td>
                   <td className="py-2 px-3 text-right">
-                    <span className={estrategia.economia === 0 ? 'text-green-600 font-medium' : 'text-red-600'}>
+                    <span className={estrategia.economia === 0 ? 'text-[#21887C] font-medium' : 'text-[#E52B50]'}>
                       {estrategia.economia === 0 ? '✓ Melhor' : `+${formatCurrency(estrategia.economia)}`}
                     </span>
                   </td>

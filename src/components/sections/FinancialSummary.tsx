@@ -59,7 +59,7 @@ const FinancialSummary: React.FC<FinancialSummaryProps> = ({ data, hideControls 
       annual: totalIncomeAnnual,
       formatted: formatCurrency(totalIncome),
       formattedAnnual: formatCurrency(totalIncomeAnnual),
-      fill: '#0ea5e9',
+      fill: '#36557C',
     },
     {
       name: 'Despesas',
@@ -67,7 +67,7 @@ const FinancialSummary: React.FC<FinancialSummaryProps> = ({ data, hideControls 
       annual: totalExpensesAnnual,
       formatted: formatCurrency(totalExpensesMonthly),
       formattedAnnual: formatCurrency(totalExpensesAnnual),
-      fill: '#f43f5e',
+      fill: '#E52B50',
     },
     {
       name: 'Excedente',
@@ -75,7 +75,7 @@ const FinancialSummary: React.FC<FinancialSummaryProps> = ({ data, hideControls 
       annual: surplusAnnual,
       formatted: formatCurrency(surplusMonthly),
       formattedAnnual: formatCurrency(surplusAnnual),
-      fill: surplusMonthly >= 0 ? '#22c55e' : '#ef4444',
+      fill: surplusMonthly >= 0 ? '#21887C' : '#E52B50',
     },
   ];
 
@@ -162,9 +162,27 @@ const FinancialSummary: React.FC<FinancialSummaryProps> = ({ data, hideControls 
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={monthlyChartData} margin={{ top: 24, right: 24, left: 8, bottom: 8 }} barCategoryGap={24} barGap={12}>
-                        <XAxis dataKey="name" interval={0} tickLine={false} axisLine={false} tickMargin={10} />
-                        <YAxis domain={[0, (dataMax: number) => Math.max(dataMax || 0, 1) * 1.25]} tickFormatter={(v) => formatCurrencyCompact(Number(v))} tickLine={false} axisLine={false} width={72} />
-                        <CartesianGrid strokeDasharray="4 4" strokeOpacity={0.25} />
+                        <XAxis 
+                          dataKey="name" 
+                          interval={0} 
+                          tickLine={false} 
+                          axisLine={false} 
+                          tickMargin={10}
+                          tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
+                        />
+                        <YAxis 
+                          domain={[0, (dataMax: number) => Math.max(dataMax || 0, 1) * 1.25]} 
+                          tickFormatter={(v) => formatCurrencyCompact(Number(v))} 
+                          tickLine={false} 
+                          axisLine={false} 
+                          width={72}
+                          tick={{ fill: 'hsl(var(--foreground))', fontSize: 11 }}
+                        />
+                        <CartesianGrid 
+                          strokeDasharray="4 4" 
+                          strokeOpacity={0.25}
+                          stroke="hsl(var(--foreground))"
+                        />
                         <Tooltip
                           cursor={{ fill: 'rgba(0,0,0,0.04)' }}
                           formatter={(value: any, _name: any, payload: any) => {
@@ -173,16 +191,16 @@ const FinancialSummary: React.FC<FinancialSummaryProps> = ({ data, hideControls 
                         />
                         <defs>
                           <linearGradient id="bar-income" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#38bdf8"/>
-                            <stop offset="100%" stopColor="#0ea5e9"/>
+                            <stop offset="0%" stopColor="#36557C"/>
+                            <stop offset="100%" stopColor="#36557C"/>
                           </linearGradient>
                           <linearGradient id="bar-expense" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#fb7185"/>
-                            <stop offset="100%" stopColor="#ef4444"/>
+                            <stop offset="0%" stopColor="#E52B50"/>
+                            <stop offset="100%" stopColor="#E52B50"/>
                           </linearGradient>
                           <linearGradient id="bar-surplus" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#34d399"/>
-                            <stop offset="100%" stopColor="#10b981"/>
+                            <stop offset="0%" stopColor="#21887C"/>
+                            <stop offset="100%" stopColor="#21887C"/>
                           </linearGradient>
                         </defs>
                         <Bar dataKey="value" radius={[10, 10, 0, 0]} maxBarSize={72}>
@@ -199,7 +217,7 @@ const FinancialSummary: React.FC<FinancialSummaryProps> = ({ data, hideControls 
                             const top = (y as number) - 10;
                             const monthlyText = payload?.formatted ?? '';
                             return (
-                              <text x={cx} y={top} textAnchor="middle" fill="#0f172a" fontSize={12} fontWeight={700}>
+                              <text x={cx} y={top} textAnchor="middle" fill="hsl(var(--foreground))" fontSize={12} fontWeight={700}>
                                 <tspan x={cx} dy="0">{monthlyText}</tspan>
                               </text>
                             );
