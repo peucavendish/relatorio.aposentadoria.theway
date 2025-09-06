@@ -151,7 +151,11 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
                 .reduce((acc: number, a: any) => acc + (Number(a?.valor) || 0), 0);
 
               const vgblSaldo = Number(data?.tributario?.previdenciaVGBL?.saldoAtual || data?.tributario?.previdenciaVGBL?.saldo || 0);
-              const previdenciaPrivadaSaldo = Number(data?.previdencia_privada?.saldo_atual || 0);
+              
+              // Calculate total from previdencia_privada array (PGBL + VGBL)
+              const previdenciaPrivadaSaldo = Array.isArray(data?.previdencia_privada) 
+                ? data.previdencia_privada.reduce((acc: number, item: any) => acc + (Number(item?.saldo_atual) || 0), 0)
+                : 0;
 
               const totalPrevidencia = previdenciaEmAtivos > 0 ? previdenciaEmAtivos : (vgblSaldo + previdenciaPrivadaSaldo);
 
