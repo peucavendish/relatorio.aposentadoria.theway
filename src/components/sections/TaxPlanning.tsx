@@ -323,7 +323,8 @@ const TaxPlanning: React.FC<TaxPlanningProps> = ({ data, hideControls }) => {
           </HideableCard>
         </div> }
 
-        
+
+        {false && (
         <div
           ref={recomendacoesRef as React.RefObject<HTMLDivElement>}
           className="mb-8 animate-on-scroll delay-2"
@@ -389,6 +390,7 @@ const TaxPlanning: React.FC<TaxPlanningProps> = ({ data, hideControls }) => {
             </CardContent>
           </HideableCard>
         </div>
+        )}
 
       </div>
     </section>

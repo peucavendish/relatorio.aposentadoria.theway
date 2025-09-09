@@ -1,5 +1,30 @@
-node_modules
+# Dependencies
+node_modules/
+
+# Build outputs
+/dist/
+/build/
+/.vite/
+
+# OS
+.DS_Store
+
+# Env files
 .env
-env
-dist/
-dist
+.env.*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+
+# Tests/coverage
+coverage/
+
+# Misc
+.eslintcache

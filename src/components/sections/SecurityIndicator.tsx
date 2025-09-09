@@ -7,10 +7,16 @@ import HideableCard from '@/components/ui/HideableCard';
 import { useCardVisibility } from '@/context/CardVisibilityContext';
 
 
+interface PilarNota {
+	name?: string;
+	nome?: string;
+	nota?: number;
+}
+
 interface ScoreFinanceiro {
 	pilar?: string;
 	notaPonderada?: number;
-	elementosAvaliados?: string[];
+	elementosAvaliados?: Array<string | PilarNota>;
 }
 
 
@@ -25,13 +31,17 @@ const SecurityIndicator: React.FC<SecurityIndicatorProps> = ({ scoreFinanceiro, 
 
 	const pilar = scoreFinanceiro?.pilar ?? 'Total Geral';
 	const notaPonderada = scoreFinanceiro?.notaPonderada ?? 0;
-	const elementosAvaliados = scoreFinanceiro?.elementosAvaliados ?? [
+	const elementosAvaliadosRaw = scoreFinanceiro?.elementosAvaliados ?? [
 		'Reserva de emergência',
 		'Diversificação de ativos',
 		'Proteção patrimonial',
 		'Fluxo de caixa mensal',
 		'Endividamento'
 	];
+	const elementosAvaliados = elementosAvaliadosRaw.map((item) => {
+		if (typeof item === 'string') return { nome: item } as PilarNota;
+		return item as PilarNota;
+	});
 
 	return (
 		<section id="security-indicator">
@@ -71,12 +81,15 @@ const SecurityIndicator: React.FC<SecurityIndicatorProps> = ({ scoreFinanceiro, 
 								<div>
 									<h4 className="text-base font-medium mb-3 md:text-lg">Elementos avaliados:</h4>
 									<ul className="space-y-2">
-										{elementosAvaliados.map((elemento, index) => (
-											<li key={index} className="flex items-start gap-2">
-												<CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" style={{ color: '#36557C' }} />
-												<span className="text-sm md:text-base">{elemento}</span>
-											</li>
-										))}
+										{elementosAvaliados.map((elemento, index) => {
+											const displayName = elemento.nome || elemento.name || '';
+											return (
+												<li key={`${displayName}-${index}`} className="flex items-start gap-2">
+													<CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" style={{ color: '#36557C' }} />
+													<span className="text-sm md:text-base">{displayName}{elemento.nota != null ? ` — ${elemento.nota}` : ''}</span>
+												</li>
+											);
+										})}
 									</ul>
 								</div>
 							</div>

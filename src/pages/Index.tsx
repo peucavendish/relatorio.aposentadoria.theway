@@ -55,6 +55,7 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
         : 0) - userReports.financas.resumo.despesas_mensais) || 0,
       rendas: userReports?.financas?.rendas || [],
       despesasMensais: userReports?.financas?.resumo?.despesas_mensais || 0,
+      indicadores: userReports?.financas?.indicadores || {},
       // incluir despesas detalhadas se existirem em userReports
       despesas: userReports?.financas?.despesas || userReports?.financas?.despesas_detalhadas || [],
       // Utilizar diretamente a composição patrimonial do JSON, sem transformação
@@ -73,13 +74,15 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
         ? userReports.financas.rendas.reduce((sum: number, renda: any) => sum + (Number(renda?.valor) || 0), 0)
         : 0) - userReports.financas.resumo.despesas_mensais) || 0,
       rendas: userReports?.financas?.rendas || [],
-      totalInvestido: userReports?.financas?.composicao_patrimonial?.Investimentos || 0,
-      ativos: userReports?.financas?.ativos?.map(a => ({
-        tipo: a.tipo,
-        valor: a.valor,
-        classe: a.classe
-      })) || [],
-      passivos: userReports?.financas?.passivos || [],
+      totalInvestido: (userReports?.financas?.composicao_patrimonial?.Investimentos
+        || userReports?.composicao_patrimonial?.Investimentos
+        || 0),
+      ativos: (userReports?.financas?.ativos || userReports?.ativos || []).map((a: any) => ({
+        tipo: a?.tipo,
+        valor: a?.valor,
+        classe: a?.classe
+      })),
+      passivos: userReports?.financas?.passivos || userReports?.passivos || [],
 
       rendaMensalDesejada: userReports?.planoAposentadoria?.renda_desejada || 0,
       idadeAposentadoria: userReports?.planoAposentadoria?.idade_aposentadoria || 0,
@@ -195,7 +198,12 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
           const response = await axios.get(`${apiUrl}/client-reports/${sessionId}`);
 
           const reportData = JSON.parse(response.data[0].report_data);
-          setUserReports(reportData);
+          const normalizeReport = (raw: any) => {
+            const base = Array.isArray(raw) ? raw[0] : raw;
+            const output = base?.output ?? base;
+            return output ?? {};
+          };
+          setUserReports(normalizeReport(reportData));
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -262,7 +270,7 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
               <div className="min-h-screen">
                 <CoverPage
                   clientData={getClientData().cliente}
-                  date={userReports?.created_at ? new Date(userReports.created_at).toLocaleDateString('pt-BR', {
+                  date={(userReports?.created_at || userReports?.meta?.created_at) ? new Date(userReports?.created_at || userReports?.meta?.created_at).toLocaleDateString('pt-BR', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
@@ -277,7 +285,22 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
                     scoreFinanceiro={{
                       pilar: 'Total Geral',
                       notaPonderada: userReports?.scoreFinanceiro?.find?.(s => s.Pilar === 'Total Geral')?.['Nota Ponderada'] ?? 0,
-                      elementosAvaliados: userReports?.scoreFinanceiro?.filter?.(s => s.Pilar !== 'Total Geral').map(s => s.Pilar) ?? []
+                      elementosAvaliados: (userReports?.scoreFinanceiro || [])
+                        .filter((s: any) => s.Pilar && s.Pilar !== 'Total Geral')
+                        .sort((a: any, b: any) => {
+                          const order = [
+                            'Gestão de Ativos',
+                            'Aposentadoria',
+                            'Gestão de Riscos',
+                            'Planejamento Sucessório',
+                            'Gestão Tributária',
+                            'Organização Patrimonial'
+                          ];
+                          const ia = order.indexOf(a.Pilar);
+                          const ib = order.indexOf(b.Pilar);
+                          return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+                        })
+                        .map((s: any) => ({ nome: s.Pilar, nota: s['Nota'] }))
                     }}
                     hideControls={clientPropect}
                   />

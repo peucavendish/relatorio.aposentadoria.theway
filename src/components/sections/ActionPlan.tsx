@@ -352,7 +352,11 @@ const ActionPlan: React.FC<ActionPlanProps> = ({ data, hideControls, sessionId }
     'Moisés Santos'
   ];
 
+  // Flag global para ativação futura do acionamento de especialista
+  const specialistAvailable = false;
+
   const handleSpecialistClick = (cardId: string) => {
+    if (!specialistAvailable) return; // Desativado por enquanto
     // Apenas o card de "Proteção Patrimonial" abre o modal
     if (cardId === "protecao-patrimonial") {
       setOpenModal(cardId);
@@ -457,9 +461,13 @@ const ActionPlan: React.FC<ActionPlanProps> = ({ data, hideControls, sessionId }
                       size="sm" 
                       className="w-full group-hover:bg-accent group-hover:text-accent-foreground transition-colors"
                       onClick={() => handleSpecialistClick(fase.id)}
+                      disabled
                     >
                       Acionamento do Especialista
                     </Button>
+                    <div className="text-center text-xs text-muted-foreground mt-1">
+                      Em breve
+                    </div>
                   </div>
                 </CardContent>
               </Card>

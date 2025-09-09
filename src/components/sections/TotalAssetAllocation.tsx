@@ -25,6 +25,13 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
   const balancoRef = useScrollAnimation();
   const { isCardVisible, toggleCardVisibility } = useCardVisibility();
 
+  // Normaliza a origem dos dados: pode vir como array, com wrapper `output`,
+  // com `financas` dentro de `output`, ou diretamente o objeto de finanças
+  const source = Array.isArray(data)
+    ? ((data[0] as any)?.output ?? data[0])
+    : ((data as any)?.output ?? data);
+  const fin = ((source as any)?.financas ?? source ?? {}) as any;
+
   // Cores padronizadas por tipo de ativo - apenas as 4 tonalidades especificadas
   const assetColors: Record<string, string> = {
     'Imóveis': '#21887C',           // Verde
@@ -46,7 +53,7 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
     return `hsl(${hue}, 70%, 60%)`;
   };
 
-  const composition = data?.financas?.composicao_patrimonial || {};
+  const composition = (fin?.composicao_patrimonial || (source as any)?.composicao_patrimonial || {}) as Record<string, number>;
 
   // Lógica: Investimentos - Financeiros = Investimentos total - Previdência - Internacional
   // Removemos subgrupos da exibição e inserimos o residual financeiro sob novo rótulo
@@ -89,12 +96,43 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
   const baixaLiquidez = percentualImoveis >= 50;
 
   // Passivos e patrimônio líquido a partir dos dados consolidados
-  const passivos = Array.isArray(data?.financas?.passivos) ? data.financas.passivos : [];
+  const passivos = Array.isArray(fin?.passivos)
+    ? fin.passivos
+    : (Array.isArray((source as any)?.passivos) ? (source as any).passivos : []);
   const totalPassivos: number = passivos.reduce((sum: number, p: any) => sum + (Number(p?.valor) || 0), 0);
   const patrimonioLiquido: number = totalAtivos - totalPassivos;
 
   // Lista de ativos para o Balanço: não detalhar subitens de investimentos
-  const ativos = Array.isArray(data?.financas?.ativos) ? data.financas.ativos : [];
+  const ativos = Array.isArray(fin?.ativos)
+    ? fin.ativos
+    : (Array.isArray((source as any)?.ativos) ? (source as any).ativos : []);
+  // Captura o ativo de Investimentos (Financeiros) para extrair subitens apenas para exibição
+  const investimentosParent = Array.isArray(ativos)
+    ? ativos.find((a: any) => {
+        const tipo = String(a?.tipo || '').toLowerCase();
+        const classe = String(a?.classe || '').toLowerCase();
+        return tipo.includes('invest') && classe.includes('financeir');
+      })
+    : undefined;
+  const investimentosSubitens: any[] = Array.isArray((investimentosParent as any)?.subitens)
+    ? (investimentosParent as any).subitens
+    : [];
+  // Monta subitens para exibição, adicionando "Demais Investimentos" como a diferença
+  const somaSubitensParent: number = investimentosSubitens.reduce(
+    (sum: number, si: any) => sum + (Number(si?.valor) || 0),
+    0
+  );
+  const demaisInvestimentosFromTotal: number = Math.max(0, rawInvestimentos - somaSubitensParent);
+  const displayInvestmentSubitems: any[] = (() => {
+    if (Array.isArray(investimentosSubitens) && investimentosSubitens.length > 0) {
+      const base = [...investimentosSubitens];
+      if (demaisInvestimentosFromTotal > 0) base.push({ classe: 'Demais Investimentos', valor: demaisInvestimentosFromTotal });
+      return base;
+    }
+    return investimentosFinanceirosResidual > 0
+      ? [{ classe: 'Demais Investimentos', valor: investimentosFinanceirosResidual }]
+      : [];
+  })();
   const isInvestmentSubitem = (asset: any): boolean => {
     const tipo = String(asset?.tipo || '').toLowerCase();
     const classe = String(asset?.classe || '').toLowerCase();
@@ -108,29 +146,32 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
     );
   };
   const nonInvestmentAssets = ativos.filter((a: any) => !isInvestmentSubitem(a));
+  // Regra: mostrar Investimentos - Financeiros sempre por último
   const ativosBalanco = [
-    ...(investimentosFinanceirosResidual > 0 ? [{ tipo: 'Investimentos - Financeiros', valor: investimentosFinanceirosResidual }] as any[] : []),
     ...nonInvestmentAssets,
+    ...(investimentosFinanceirosResidual > 0
+      ? [{ tipo: 'Investimentos - Financeiros', valor: investimentosFinanceirosResidual, subitens: displayInvestmentSubitems }] as any[]
+      : []),
   ];
   const totalAtivosLista: number = ativosBalanco.reduce((sum: number, a: any) => sum + (Number(a?.valor) || 0), 0);
   const endividamento: number = totalAtivos > 0 ? Number(((totalPassivos / totalAtivos) * 100).toFixed(2)) : 0;
-  const rendaTotal: number = Array.isArray(data?.financas?.rendas)
-    ? data.financas.rendas.reduce((sum: number, renda: any) => sum + (Number(renda?.valor) || 0), 0)
+  const rendaTotal: number = Array.isArray(fin?.rendas)
+    ? fin.rendas.reduce((sum: number, renda: any) => sum + (Number(renda?.valor) || 0), 0)
     : 0;
-  const excedenteMensal: number = ((Array.isArray(data?.financas?.rendas)
-    ? data.financas.rendas.reduce((sum: number, renda: any) => sum + (Number(renda?.valor) || 0), 0)
-    : 0) - (Number(data?.financas?.resumo?.despesas_mensais) || 0)) || 0;
+  const excedenteMensal: number = ((Array.isArray(fin?.rendas)
+    ? fin.rendas.reduce((sum: number, renda: any) => sum + (Number(renda?.valor) || 0), 0)
+    : 0) - (Number(fin?.resumo?.despesas_mensais) || 0)) || 0;
   const poupanca: number = rendaTotal > 0 ? Number(((excedenteMensal / rendaTotal) * 100).toFixed(2)) : 0;
   // Corrige despesasMensais: usa resumo.despesas_mensais se existir, senão soma todas as rendas
   const despesasMensais =
-    Number(data?.financas?.resumo?.despesas_mensais) ||
-    (Array.isArray(data?.financas?.rendas)
-      ? data.financas.rendas.reduce((sum: number, renda: any) => sum + (Number(renda?.valor) || 0), 0)
+    Number(fin?.resumo?.despesas_mensais) ||
+    (Array.isArray(fin?.rendas)
+      ? fin.rendas.reduce((sum: number, renda: any) => sum + (Number(renda?.valor) || 0), 0)
       : 0);
 
   // Ativos de curto prazo / alta liquidez (usar mapeamento explícito do JSON)
-  const shortTermAssetsExplicit = Array.isArray(data?.financas?.ativos)
-    ? data.financas.ativos.filter((a: any) => {
+  const shortTermAssetsExplicit = Array.isArray(fin?.ativos)
+    ? fin.ativos.filter((a: any) => {
         const tipo = String(a?.tipo || '').toLowerCase();
         const classe = String(a?.classe || '').toLowerCase();
         return tipo.includes('curto prazo') && classe.includes('alta liquidez');
@@ -150,10 +191,26 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
 
   const shortTermAssets = shortTermAssetsExplicit.length > 0
     ? shortTermAssetsExplicit
-    : (Array.isArray(data?.financas?.ativos) ? data.financas.ativos.filter((a: any) => isShortTerm(a)) : []);
+    : (Array.isArray(fin?.ativos) ? fin.ativos.filter((a: any) => isShortTerm(a)) : []);
 
-  const totalCurtoPrazo = shortTermAssets.reduce((sum: number, a: any) => sum + (Number(a?.valor) || 0), 0);
-  const numeroAtivosCurtoPrazo = shortTermAssets.length;
+  // Preferir indicador explícito de curto prazo, se fornecido
+  // Complemento: considerar "Reserva de Emergência" vinda dos subitens de Investimentos como curto prazo
+  const reservaShortTermFromSubitems: any[] = Array.isArray(investimentosSubitens)
+    ? investimentosSubitens.filter((si: any) => {
+        const nome = `${si?.classe || ''} ${si?.tipo || ''}`.toLowerCase();
+        return nome.includes('reserva') || nome.includes('emerg');
+      })
+    : [];
+  const reservaShortTermValor: number = reservaShortTermFromSubitems.reduce((sum: number, si: any) => sum + (Number(si?.valor) || 0), 0);
+
+  const totalCurtoPrazoIndicador = Number(
+    fin?.indicadores?.investimentos_de_curto_prazo?.valor || 0
+  );
+  const totalCurtoPrazoInferido =
+    shortTermAssets.reduce((sum: number, a: any) => sum + (Number(a?.valor) || 0), 0) +
+    reservaShortTermValor;
+  const totalCurtoPrazo = totalCurtoPrazoIndicador > 0 ? totalCurtoPrazoIndicador : totalCurtoPrazoInferido;
+  const numeroAtivosCurtoPrazo = shortTermAssets.length + reservaShortTermFromSubitems.length;
   // Horizonte de cobertura: ativos de curto prazo / custo de vida mensal
   const coberturaMeses = despesasMensais > 0 ? Number((totalCurtoPrazo / despesasMensais).toFixed(1)) : 0;
   const horizonteCobertura = coberturaMeses;
@@ -164,12 +221,16 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
 
   // Exposição Geográfica dos Investimentos (Brasil vs Exterior)
   // Denominador: valor total de "Investimentos" informado em composicao_patrimonial
-  const totalInvestimentosComposicao: number = Number(data?.financas?.composicao_patrimonial?.['Investimentos'] || 0);
+  const totalInvestimentosComposicao: number = Number(((fin?.composicao_patrimonial || (source as any)?.composicao_patrimonial || {}) as any)['Investimentos'] || 0);
 
   // Numerador (Exterior): Preferir indicador explícito quando existir; senão, inferir pelos ativos
-  const valorExteriorIndicadores: number = Number(data?.indicadores?.investimento_internacional?.valor || 0);
-  const exteriorInvestimentos = Array.isArray(data?.financas?.ativos)
-    ? data.financas.ativos.filter((a: any) => {
+  const valorExteriorIndicadores: number = Number(
+    fin?.indicadores?.investimento_internacional?.valor ||
+    (data as any)?.indicadores?.investimento_internacional?.valor ||
+    0
+  );
+  const exteriorInvestimentos = Array.isArray(ativos)
+    ? ativos.filter((a: any) => {
         const tipo = String(a?.tipo || '').toLowerCase();
         const classe = String(a?.classe || '').toLowerCase();
         return tipo === 'internacional' || (tipo.includes('invest') && classe.includes('internacional'));
@@ -252,6 +313,31 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
                     <div className="card-list">
                       {ativosBalanco.map((asset: any, index: number) => {
                         const valorExibido = Number(asset?.valor) || 0;
+
+                        // Layout especial quando há subitens (Investimentos - Financeiros)
+                        if (asset?.tipo === 'Investimentos - Financeiros' && Array.isArray(asset?.subitens) && asset.subitens.length > 0) {
+                          const nested = asset.subitens as any[];
+
+                          return (
+                            <>
+                              <div key={`asset-${index}`} className="card-list-item">
+                                <span className="card-list-label">{asset?.tipo}</span>
+                                <div className="card-flex-between">
+                                  <span className="card-list-value">{formatCurrency(valorExibido)}</span>
+                                  <span className="card-list-percentage">({totalAtivosLista > 0 ? Math.round((valorExibido / totalAtivosLista) * 100) : 0}%)</span>
+                                </div>
+                              </div>
+                              {nested.map((si: any, i: number) => (
+                                <div key={`si-${index}-${i}`} className="pl-5 ml-1 border-l border-border/30 py-1 flex items-center justify-between text-sm text-muted-foreground">
+                                  <span>{si?.classe || si?.tipo || 'Subitem'}</span>
+                                  <span className="font-medium">{formatCurrency(Number(si?.valor) || 0)}</span>
+                                </div>
+                              ))}
+                            </>
+                          );
+                        }
+
+                        // Layout padrão para demais ativos
                         return (
                           <div key={index} className="card-list-item">
                             <span className="card-list-label">{asset?.tipo}{asset?.classe ? ` - ${asset.classe}` : ''}</span>
@@ -434,8 +520,8 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
                         <span className="text-foreground font-medium">{horizonteCobertura} meses</span>
                       </div>
                       <div className="flex justify-between text-[11px] text-muted-foreground mt-1">
-                        <span>Ativos de curto prazo: {numeroAtivosCurtoPrazo}</span>
-                        <span>Valor total CP: {formatCurrency(totalCurtoPrazo)}</span>
+                       
+                        <span>Valor total de Ativos de Curto Prazo: {formatCurrency(totalCurtoPrazo)}</span>
                       </div>
                       <div className="flex justify-between text-[11px] text-muted-foreground mt-1">
                         <span></span>
