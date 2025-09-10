@@ -6,20 +6,25 @@ interface SectionVisibilityContextType {
     toggleSectionVisibility: (sectionId: string) => void;
     isSectionVisible: (sectionId: string) => boolean;
     isLoading: boolean;
+    getVisibleSections: () => string[];
+    getHiddenSections: () => string[];
+    resetAllSectionsToVisible: () => void;
 }
 
 const SectionVisibilityContext = createContext<SectionVisibilityContextType | undefined>(undefined);
 
 // Lista de todas as seções possíveis (ordem desejada)
 const ALL_SECTION_IDS = [
-    "summary",                 // Resumo Financeiro
-    "total-asset-allocation", // Gestão de Ativos
-    "retirement",             // Aposentadoria
-    "beach-house",            // Aquisição de Imóveis
-    "protection",             // Proteção Patrimonial
-    "succession",             // Planejamento Sucessório
-    "tax",                    // Planejamento Tributário
-    "action-plan"             // Plano de Ação
+    "summary",                     // Resumo Financeiro
+    "total-asset-allocation",     // Gestão de Ativos
+    "retirement",                 // Aposentadoria
+    "beach-house",                // Aquisição de Imóveis
+    "protection",                 // Proteção Patrimonial
+    "succession",                 // Planejamento Sucessório
+    "tax",                        // Planejamento Tributário
+    "action-plan",                // Plano de Ação
+    "life-projects",              // Projetos de Vida
+    "implementation-monitoring"   // Implementação e Monitoramento
 ];
 
 // Função para criar um objeto com todas as seções visíveis
@@ -51,21 +56,34 @@ export const SectionVisibilityProvider: React.FC<{ children: React.ReactNode }> 
 
         try {
             const apiUrl = import.meta.env.VITE_API_THE_WAY;
-            const response = await axios.get(`${apiUrl}/clients/hidden-sections?session_id=${sessionId}`);
+            const response = await axios.get(`http://localhost/api/clients/hidden-sections?session_id=${sessionId}`);
 
-            if (response.data.hiddenSections === null) {
-                // Se hiddenSections for null, faz uma requisição POST para setar todas as seções como visíveis
-                const allVisibleState = createAllSectionsVisibleState();
+            let hiddenSectionsData = response.data.hiddenSections;
 
-                await axios.post(`${apiUrl}/clients/update-hidden-sections`, {
+            // Se hiddenSections for null/undefined ou não for um objeto, inicializa com todas as seções visíveis
+            if (!hiddenSectionsData || typeof hiddenSectionsData !== 'object') {
+                hiddenSectionsData = createAllSectionsVisibleState();
+
+                // Salva o estado inicial no backend
+                await axios.post(`http://localhost/api/clients/update-hidden-sections`, {
                     session_id: sessionId,
-                    hiddenSections: allVisibleState
+                    hiddenSections: hiddenSectionsData
                 });
-
-                setHiddenSections(allVisibleState);
             } else {
-                setHiddenSections(response.data.hiddenSections);
+                // Garante que todas as seções estejam presentes no objeto retornado
+                const allSectionsState = createAllSectionsVisibleState();
+                // Prioriza o estado do backend, mas garante que seções não existentes sejam visíveis
+                hiddenSectionsData = { ...allSectionsState, ...hiddenSectionsData };
+
+                // Força todas as seções a serem visíveis por padrão se não estiverem definidas
+                ALL_SECTION_IDS.forEach(sectionId => {
+                    if (hiddenSectionsData[sectionId] === undefined) {
+                        hiddenSectionsData[sectionId] = false; // false = visível
+                    }
+                });
             }
+
+            setHiddenSections(hiddenSectionsData);
             setInitialized(true);
         } catch (error) {
             console.error('Error fetching hidden sections state:', error);
@@ -83,7 +101,7 @@ export const SectionVisibilityProvider: React.FC<{ children: React.ReactNode }> 
 
         try {
             const apiUrl = import.meta.env.VITE_API_THE_WAY;
-            await axios.post(`${apiUrl}/clients/update-hidden-sections`, {
+            await axios.post(`http://localhost/api/clients/update-hidden-sections`, {
                 session_id: sessionId,
                 hiddenSections: newState
             });
@@ -117,11 +135,31 @@ export const SectionVisibilityProvider: React.FC<{ children: React.ReactNode }> 
         return !hiddenSections[sectionId];
     }, [hiddenSections]);
 
+    // Função para obter lista de seções visíveis
+    const getVisibleSections = useCallback(() => {
+        return ALL_SECTION_IDS.filter(sectionId => isSectionVisible(sectionId));
+    }, [isSectionVisible]);
+
+    // Função para obter lista de seções ocultas
+    const getHiddenSections = useCallback(() => {
+        return ALL_SECTION_IDS.filter(sectionId => !isSectionVisible(sectionId));
+    }, [isSectionVisible]);
+
+    // Função para resetar todas as seções como visíveis
+    const resetAllSectionsToVisible = useCallback(() => {
+        const allVisibleState = createAllSectionsVisibleState();
+        setHiddenSections(allVisibleState);
+        updateBackendState(allVisibleState);
+    }, [updateBackendState]);
+
     const value = {
         hiddenSections,
         toggleSectionVisibility,
         isSectionVisible,
-        isLoading
+        isLoading,
+        getVisibleSections,
+        getHiddenSections,
+        resetAllSectionsToVisible
     };
 
     return (

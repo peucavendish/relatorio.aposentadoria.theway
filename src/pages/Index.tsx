@@ -38,7 +38,7 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
   const [user, setUser] = useState(null);
   const [userReports, setUserReports] = useState(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  
+
 
   const getClientData = () => ({
     cliente: {
@@ -229,7 +229,8 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
 
       try {
         const shouldHide: Record<string, boolean> = {
-          'beach-house': !(userReports?.imovelDesejado?.objetivo?.valorImovel),
+          // Removido: 'beach-house': !(userReports?.imovelDesejado?.objetivo?.valorImovel),
+          // A seção beach-house agora é controlada apenas pelo usuário, não automaticamente
           'succession': !(
             (userReports?.sucessao?.situacaoAtual?.objetivosSucessorios?.length ?? 0) > 0 ||
             (userReports?.sucessao?.instrumentos?.length ?? 0) > 0

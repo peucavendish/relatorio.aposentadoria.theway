@@ -19,11 +19,6 @@ const HideableSection: React.FC<HideableSectionProps> = ({
   const { isSectionVisible, toggleSectionVisibility } = useSectionVisibility();
   const isVisible = isSectionVisible(sectionId);
 
-  // Se os controles estão ocultos e a seção não está visível, não renderiza nada
-  if (hideControls && !isVisible) {
-    return null;
-  }
-
   // Se a seção não está visível, não renderiza nada (remodela o relatório como se a seção não existisse)
   // Na impressão, sempre renderiza a seção visível ao consultor (mesmo sem controles),
   // mas respeitando o estado de visibilidade salvo. Se estiver oculta, não renderiza.
