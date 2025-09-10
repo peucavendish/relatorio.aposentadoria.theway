@@ -103,8 +103,8 @@ const SectionVisibilityControls: React.FC<SectionVisibilityControlsProps> = ({ c
         >
           <Settings size={18} />
           {hiddenSectionsCount > 0 && (
-            <Badge 
-              variant="destructive" 
+            <Badge
+              variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center"
             >
               {hiddenSectionsCount}
@@ -114,59 +114,59 @@ const SectionVisibilityControls: React.FC<SectionVisibilityControlsProps> = ({ c
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="max-w-lg w-[95vw] max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Seções do relatório</DialogTitle>
             <DialogDescription>
               Mostre ou oculte seções para personalizar este relatório.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="mt-4">
-            <div className="flex items-center justify-between mb-4">
+          <div className="mt-4 flex-1 flex flex-col min-h-0">
+            <div className="flex items-center justify-between mb-4 flex-shrink-0">
               <span className="text-sm text-muted-foreground">
                 {visibleSectionsCount} visíveis • {hiddenSectionsCount} ocultas
               </span>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 flex-1 overflow-y-auto pr-2">
               {SECTIONS_CONFIG.map((section) => {
                 const isVisible = isSectionVisible(section.id);
                 return (
                   <div
                     key={section.id}
                     className={cn(
-                      "flex items-center justify-between p-4 rounded-lg border transition-colors",
-                      isVisible 
-                        ? "bg-background border-border" 
+                      "flex items-center justify-between p-3 rounded-lg border transition-colors",
+                      isVisible
+                        ? "bg-background border-border"
                         : "bg-muted/30 border-muted"
                     )}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl">{section.icon}</div>
-                      <div>
-                        <h3 className="font-medium">{section.label}</h3>
-                        <p className="text-sm text-muted-foreground">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="text-xl flex-shrink-0">{section.icon}</div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-medium text-sm sm:text-base truncate">{section.label}</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
                           {section.description}
                         </p>
                       </div>
                     </div>
-                    
+
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => toggleSectionVisibility(section.id)}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-1 flex-shrink-0"
                     >
                       {isVisible ? (
                         <>
-                          <Eye size={16} />
-                          <span className="hidden sm:inline">Visível</span>
+                          <Eye size={14} />
+                          <span className="hidden sm:inline text-xs">Visível</span>
                         </>
                       ) : (
                         <>
-                          <EyeOff size={16} />
-                          <span className="hidden sm:inline">Oculta</span>
+                          <EyeOff size={14} />
+                          <span className="hidden sm:inline text-xs">Oculta</span>
                         </>
                       )}
                     </Button>
@@ -175,8 +175,8 @@ const SectionVisibilityControls: React.FC<SectionVisibilityControlsProps> = ({ c
               })}
             </div>
 
-            <div className="bg-accent/10 p-4 rounded-lg border border-accent/20">
-              <p className="text-sm text-muted-foreground">
+            <div className="bg-accent/10 p-3 rounded-lg border border-accent/20 mt-4 flex-shrink-0">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 As preferências de visibilidade são salvas automaticamente no seu navegador.
               </p>
             </div>
