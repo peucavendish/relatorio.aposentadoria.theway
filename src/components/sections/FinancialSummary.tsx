@@ -8,6 +8,7 @@ import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { formatCurrency, formatCurrencyCompact } from '@/utils/formatCurrency';
 import { useCardVisibility } from '@/context/CardVisibilityContext';
 import { Card } from '@/components/ui/card';
+import { useSectionNumbering } from '@/hooks/useSectionNumbering';
 
 interface FinanceSummary {
   patrimonioLiquido: number;
@@ -32,6 +33,7 @@ const FinancialSummary: React.FC<FinancialSummaryProps> = ({ data, hideControls 
   const summaryCardRef = useScrollAnimation();
   const incomeExpenseCardRef = useScrollAnimation();
   const balanceCardRef = useScrollAnimation();
+  const sectionNumber = useSectionNumbering('summary');
 
   const { isCardVisible, toggleCardVisibility } = useCardVisibility();
 
@@ -101,7 +103,7 @@ const FinancialSummary: React.FC<FinancialSummaryProps> = ({ data, hideControls 
                 <DollarSign size={28} className="text-financial-info" />
               </div>
             </div>
-            <h2 className="heading-2 mb-3">1. Resumo Financeiro</h2>
+            <h2 className="heading-2 mb-3">{sectionNumber}. Resumo Financeiro</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Visão geral da sua situação financeira atual, incluindo patrimônio,
               renda, gastos e composição patrimonial.

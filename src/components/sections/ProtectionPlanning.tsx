@@ -5,6 +5,7 @@ import HideableCard from '@/components/ui/HideableCard';
 import { useCardVisibility } from '@/context/CardVisibilityContext';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { useSectionNumbering } from '@/hooks/useSectionNumbering';
 import {
   BarChart as ReBarChart,
   Bar,
@@ -24,6 +25,7 @@ interface ProtectionPlanningProps {
 const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideControls }) => {
   const protectionData = data?.protecao;
   const { isCardVisible, toggleCardVisibility } = useCardVisibility();
+  const sectionNumber = useSectionNumbering('protection');
 
   if (!protectionData) {
     return <div>Dados de proteção patrimonial não disponíveis</div>;
@@ -71,7 +73,7 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
                 <Shield size={28} className="text-accent" />
               </div>
             </div>
-            <h2 className="heading-2 mb-3">5. Proteção Patrimonial</h2>
+            <h2 className="heading-2 mb-3">{sectionNumber}. Proteção Patrimonial</h2>
             <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
               {protectionData.resumo}
             </p>

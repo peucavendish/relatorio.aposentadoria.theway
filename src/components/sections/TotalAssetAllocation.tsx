@@ -13,6 +13,7 @@ import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import DonutChart from '@/components/charts/DonutChart';
 import { formatCurrency } from '@/utils/formatCurrency';
 import ProgressBar from '@/components/ui/ProgressBar';
+import { useSectionNumbering } from '@/hooks/useSectionNumbering';
 
 interface TotalAssetAllocationProps {
   data?: any;
@@ -24,6 +25,7 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
   const estrategiaRef = useScrollAnimation();
   const balancoRef = useScrollAnimation();
   const { isCardVisible, toggleCardVisibility } = useCardVisibility();
+  const sectionNumber = useSectionNumbering('total-asset-allocation');
 
   // Normaliza a origem dos dados: pode vir como array, com wrapper `output`,
   // com `financas` dentro de `output`, ou diretamente o objeto de finanças
@@ -269,7 +271,7 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
                 <BarChart size={28} className="text-financial-info" />
               </div>
             </div>
-            <h2 className="heading-2 mb-3">2. Gestão de Ativos</h2>
+            <h2 className="heading-2 mb-3">{sectionNumber}. Gestão de Ativos</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Total Asset Allocation - Avaliar a alocação patrimonial completa do cliente (ativos financeiros e reais), identificando concentração, liquidez, coerência com os objetivos e perfil de risco.
             </p>

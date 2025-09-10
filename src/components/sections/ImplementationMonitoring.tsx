@@ -9,6 +9,7 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { useSectionNumbering } from '@/hooks/useSectionNumbering';
 
 interface ImplementationMonitoringProps {
   data: any;
@@ -57,6 +58,7 @@ const ImplementationMonitoring: React.FC<ImplementationMonitoringProps> = ({ dat
   const titleRef = useScrollAnimation<HTMLDivElement>();
   const sectionRef = useScrollAnimation<HTMLDivElement>({ threshold: 0.2 });
   const captureRef = React.useRef<HTMLDivElement>(null);
+  const sectionNumber = useSectionNumbering('implementation-monitoring');
 
   if (!data) {
     return <section className="py-16 px-4" id="implementation-monitoring"><div className="section-container">Dados de monitoramento não disponíveis</div></section>;
@@ -224,7 +226,7 @@ const ImplementationMonitoring: React.FC<ImplementationMonitoringProps> = ({ dat
                 <Activity size={28} className="text-accent" />
               </div>
             </div>
-            <h2 className="heading-2">9. Implementação e Monitoramento</h2>
+            <h2 className="heading-2">{sectionNumber}. Implementação e Monitoramento</h2>
             <p className="card-description-standard max-w-2xl mx-auto">
               Acompanhamento de aportes e evolução do patrimônio de investimentos versus metas, com base em CDI (12m) e IPCA.
             </p>

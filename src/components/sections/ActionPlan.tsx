@@ -11,6 +11,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { useSectionNumbering } from '@/hooks/useSectionNumbering';
 import {
   Card,
   CardContent,
@@ -141,6 +142,7 @@ const ActionPlan: React.FC<ActionPlanProps> = ({ data, hideControls, sessionId }
   const timelineRef = useScrollAnimation<HTMLDivElement>({ threshold: 0.2 });
   const priorityRef = useScrollAnimation<HTMLDivElement>({ threshold: 0.2 });
   const nextStepsRef = useScrollAnimation<HTMLDivElement>({ threshold: 0.2 });
+  const sectionNumber = useSectionNumbering('action-plan');
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -388,7 +390,7 @@ const ActionPlan: React.FC<ActionPlanProps> = ({ data, hideControls, sessionId }
                 <ListChecks size={28} className="text-accent" />
               </div>
             </div>
-            <h2 className="heading-2 mb-3">8. Plano de Ação</h2>
+            <h2 className="heading-2 mb-3">{sectionNumber}. Plano de Ação</h2>
             <p className="card-description-standard max-w-2xl mx-auto">
               Conjunto de ações estratégicas para alcançar seus objetivos financeiros e patrimoniais
             </p>

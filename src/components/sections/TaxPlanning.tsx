@@ -11,6 +11,7 @@ import HideableCard from '@/components/ui/HideableCard';
 import { useCardVisibility } from '@/context/CardVisibilityContext';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import StatusChip from '@/components/ui/StatusChip';
+import { useSectionNumbering } from '@/hooks/useSectionNumbering';
 import {
   Calculator,
   FileText,
@@ -34,6 +35,7 @@ const TaxPlanning: React.FC<TaxPlanningProps> = ({ data, hideControls }) => {
   const headerRef = useScrollAnimation();
   const diagnosticoRef = useScrollAnimation();
   const comparativoRef = useScrollAnimation();
+  const sectionNumber = useSectionNumbering('tax');
   const recomendacoesRef = useScrollAnimation();
   const { isCardVisible, toggleCardVisibility } = useCardVisibility();
 
@@ -136,7 +138,7 @@ const TaxPlanning: React.FC<TaxPlanningProps> = ({ data, hideControls }) => {
                 <Calculator size={28} className="text-financial-info" />
               </div>
             </div>
-            <h2 className="text-4xl font-bold mb-3">7. Planejamento Tributário</h2>
+            <h2 className="text-4xl font-bold mb-3">{sectionNumber}. Planejamento Tributário</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               Estratégias para otimização fiscal e redução da carga tributária através de estruturação
               patrimonial e organização financeira.
