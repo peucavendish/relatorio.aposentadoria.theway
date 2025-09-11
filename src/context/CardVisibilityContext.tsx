@@ -85,7 +85,7 @@ export const CardVisibilityProvider: React.FC<{ children: React.ReactNode }> = (
                     "comparativo-irpf": false
                 };
 
-                await axios.post('http://localhost/api/clients/update-hidden-cards', {
+                await axios.post(`${apiUrl}/clients/update-hidden-cards`, {
                     session_id: sessionId,
                     hiddenCards: allVisibleState
                 });
@@ -111,7 +111,7 @@ export const CardVisibilityProvider: React.FC<{ children: React.ReactNode }> = (
 
         try {
             const apiUrl = import.meta.env.VITE_API_THE_WAY;
-            await axios.post('http://localhost/api/clients/update-hidden-cards', {
+            await axios.post(`${apiUrl}/clients/update-hidden-cards`, {
                 session_id: sessionId,
                 hiddenCards: newState
             });

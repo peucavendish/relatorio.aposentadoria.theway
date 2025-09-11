@@ -56,7 +56,7 @@ export const SectionVisibilityProvider: React.FC<{ children: React.ReactNode }> 
 
         try {
             const apiUrl = import.meta.env.VITE_API_THE_WAY;
-            const response = await axios.get(`http://localhost/api/clients/hidden-sections?session_id=${sessionId}`);
+            const response = await axios.get(`${apiUrl}/clients/hidden-sections?session_id=${sessionId}`);
 
             let hiddenSectionsData = response.data.hiddenSections;
 
@@ -65,7 +65,7 @@ export const SectionVisibilityProvider: React.FC<{ children: React.ReactNode }> 
                 hiddenSectionsData = createAllSectionsVisibleState();
 
                 // Salva o estado inicial no backend
-                await axios.post(`http://localhost/api/clients/update-hidden-sections`, {
+                await axios.post(`${apiUrl}/clients/update-hidden-sections`, {
                     session_id: sessionId,
                     hiddenSections: hiddenSectionsData
                 });
@@ -101,7 +101,7 @@ export const SectionVisibilityProvider: React.FC<{ children: React.ReactNode }> 
 
         try {
             const apiUrl = import.meta.env.VITE_API_THE_WAY;
-            await axios.post(`http://localhost/api/clients/update-hidden-sections`, {
+            await axios.post(`${apiUrl}/clients/update-hidden-sections`, {
                 session_id: sessionId,
                 hiddenSections: newState
             });
