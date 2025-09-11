@@ -164,28 +164,6 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
     });
   };
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentSessionId = urlParams.get('sessionId');
-        setSessionId(currentSessionId);
-
-        if (currentSessionId) {
-          const apiUrl = import.meta.env.VITE_API_THE_WAY;
-          const response = await axios.get(`${apiUrl}/data-extract/${currentSessionId}`);
-          setUser(response.data[0]);
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        if (error.response) {
-          console.error('Error response:', error.response.data);
-          console.error('Error status:', error.response.status);
-        }
-      }
-    };
-    fetchUserData();
-  }, []);
 
   useEffect(() => {
     const fetchUserReportsData = async () => {
