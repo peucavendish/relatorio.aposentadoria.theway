@@ -347,20 +347,27 @@ const ActionPlan: React.FC<ActionPlanProps> = ({ data, hideControls, sessionId }
 
   const specialistUrl = 'https://outlook.office.com/bookwithme/user/431917f0f5654e55bb2fa25f5b91cc7c@altavistainvest.com.br?anonymous&ismsaljsauthenabled&ep=pcard';
 
-  const consultores = [
-    'Alexandre Faustino',
-    'Daniel Aveiro', 
-    'Fabio Hassui',
-    'Moisés Santos'
-  ];
+  const consultoresPorCard: Record<string, { nome: string; url: string }[]> = {
+    'protecao-patrimonial': [
+      { nome: 'Fabio Hassui', url: 'https://outlook.office.com/bookwithme/user/8df7cb6119d74390839118e19d34856d@altavistainvest.com.br?anonymous&ismsaljsauthenabled&ep=plink' },
+      { nome: 'Alexandre Faustino', url: 'https://outlook.office.com/bookwithme/user/02a9df5432ab4311b99093de6fff649e@altavistainvest.com.br?anonymous&ismsaljsauthenabled&ep=plink' },
+      { nome: 'Moisés Santos', url: 'https://outlook.office.com/bookwithme/user/95c185bee335439fac4dcb435f947edd@altavistainvest.com.br?anonymous&ismsaljsauthenabled&ep=plink' },
+    ],
+    'projetos-imobilizados': [
+      { nome: 'Ramiro', url: 'https://outlook.office.com/bookwithme/user/faaca3f90ce443ffb7cfd446be7bce6e@univalores.com.br?anonymous&ep=plink' },
+      { nome: 'Leandro Pestana', url: 'https://outlook.office.com/bookwithme/user/147b89e608ae4307a6b0eb87c6d2321a@univalores.com.br?anonymous&ismsaljsauthenabled&ep=plink' },
+      { nome: 'Camila Karayan', url: 'https://outlook.office.com/bookwithme/user/dfedba4c0971473d960dbdfc1d5cb0a0@univalores.com.br?anonymous&ismsaljsauthenabled&ep=plink' },
+      { nome: 'Rafael Carranca', url: 'https://outlook.office.com/bookwithme/user/0723caa76625477a81095a52db779685@univalores.com.br?anonymous&ismsaljsauthenabled&ep=plink' },
+    ],
+  };
 
-  // Flag global para ativação futura do acionamento de especialista
-  const specialistAvailable = false;
+  // Flag global para ativação do acionamento de especialista
+  const specialistAvailable = true;
 
   const handleSpecialistClick = (cardId: string) => {
     if (!specialistAvailable) return; // Desativado por enquanto
-    // Apenas o card de "Proteção Patrimonial" abre o modal
-    if (cardId === "protecao-patrimonial") {
+    // Cards com seleção de consultor via modal
+    if (cardId === "protecao-patrimonial" || cardId === 'projetos-imobilizados') {
       setOpenModal(cardId);
     } else {
       // Para outros cards, comportamento original
@@ -369,11 +376,11 @@ const ActionPlan: React.FC<ActionPlanProps> = ({ data, hideControls, sessionId }
     }
   };
 
-  const handleAgendaClick = (consultor: string) => {
+  const handleAgendaClick = (consultorUrl: string) => {
     if (openModal) {
       setActivatedCards(prev => new Set([...prev, openModal]));
       setOpenModal(null);
-      window.open(specialistUrl, '_blank', 'noopener,noreferrer');
+      window.open(consultorUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -463,13 +470,15 @@ const ActionPlan: React.FC<ActionPlanProps> = ({ data, hideControls, sessionId }
                       size="sm" 
                       className="w-full group-hover:bg-accent group-hover:text-accent-foreground transition-colors"
                       onClick={() => handleSpecialistClick(fase.id)}
-                      disabled
+                      disabled={!specialistAvailable || !['protecao-patrimonial', 'projetos-imobilizados'].includes(fase.id)}
                     >
                       Acionamento do Especialista
                     </Button>
-                    <div className="text-center text-xs text-muted-foreground mt-1">
-                      Em breve
-                    </div>
+                    {!['protecao-patrimonial', 'projetos-imobilizados'].includes(fase.id) && (
+                      <div className="text-center text-xs text-muted-foreground mt-1">
+                        Em breve
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -544,12 +553,12 @@ const ActionPlan: React.FC<ActionPlanProps> = ({ data, hideControls, sessionId }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 mt-4">
-            {consultores.map((consultor, index) => (
+            {(consultoresPorCard[openModal || 'protecao-patrimonial'] || []).map((consultor, index) => (
               <div key={index} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/5 transition-colors">
-                <span className="font-medium">{consultor}</span>
+                <span className="font-medium">{consultor.nome}</span>
                 <Button 
                   size="sm" 
-                  onClick={() => handleAgendaClick(consultor)}
+                  onClick={() => handleAgendaClick(consultor.url)}
                   className="bg-accent hover:bg-accent/90"
                 >
                   Agenda

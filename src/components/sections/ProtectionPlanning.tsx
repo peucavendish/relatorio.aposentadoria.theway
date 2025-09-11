@@ -164,7 +164,9 @@ const ProtectionPlanning: React.FC<ProtectionPlanningProps> = ({ data, hideContr
                 ? data.previdencia_privada.reduce((acc: number, item: any) => acc + (Number(item?.saldo_atual) || 0), 0)
                 : 0;
 
-              const totalPrevidencia = previdenciaEmAtivos > 0 ? previdenciaEmAtivos : (vgblSaldo + previdenciaPrivadaSaldo);
+              const totalPrevidencia = previdenciaEmAtivos > 0
+                ? previdenciaEmAtivos
+                : (previdenciaPrivadaSaldo > 0 ? previdenciaPrivadaSaldo : vgblSaldo);
 
               const baseInventario = Math.max(0, totalPatrimonio - totalPrevidencia);
               const taxaSucessao = 0.14; // 14%
