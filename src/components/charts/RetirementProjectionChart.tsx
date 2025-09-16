@@ -867,14 +867,15 @@ const RetirementProjectionChart: React.FC<RetirementProjectionChartProps> = ({
         const apiEvents = await getLiquidityEvents(sessionId);
         const events: LiquidityEvent[] = apiEvents.map((event, index) => ({
           id: `event-${index}`,
-          name: event.nome,
-          age: Number(event.idade),
-          startAge: Number(event.idade),
-          value: Number(event.valor),
+          name: event.nome || '',
+          age: Number(event.idade || 0),
+          startAge: Number(event.idade || 0),
+          value: Number(event.valor || 0),
           isPositive: event.tipo === 'entrada',
-          recurrence: 'once',
-          endAge: null,
-          enabled: true
+          recurrence: (event.recorrencia === 'anual' ? 'annual' :
+            event.recorrencia === 'mensal' ? 'monthly' : 'once') as 'once' | 'annual' | 'monthly',
+          endAge: event.termino ? Number(event.termino) : null,
+          enabled: (event.status ?? 1) !== 0
         }));
         setLiquidityEvents(events);
       } catch (error) {
@@ -970,8 +971,12 @@ const RetirementProjectionChart: React.FC<RetirementProjectionChartProps> = ({
           session_id: sessionId,
           nome: e.name,
           idade: e.startAge ?? e.age ?? currentAge + 1,
+          termino: e.endAge || undefined,
+          recorrencia: e.recurrence === 'annual' ? 'anual' :
+            e.recurrence === 'monthly' ? 'mensal' : 'unica',
           tipo: e.isPositive ? 'entrada' : 'saida',
           valor: e.value,
+          status: e.enabled ? 1 : 0
         }));
       }
       await saveLiquidityEvents(apiEvents);
@@ -1429,207 +1434,207 @@ const RetirementProjectionChart: React.FC<RetirementProjectionChartProps> = ({
 
           <div className="border border-border rounded-md overflow-hidden mb-6">
             <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[680px]">
-              <thead className="bg-muted/30">
-                <tr>
-                  <th className="py-2 px-3 text-left font-medium">Fluxo</th>
-                  <th className="py-2 px-3 text-center font-medium">Início</th>
-                  <th className="py-2 px-3 text-center font-medium">Término</th>
-                  <th className="py-2 px-3 text-center font-medium">Recorrência</th>
-                  <th className="py-2 px-3 text-center font-medium">Tipo</th>
-                  <th className="py-2 px-3 text-right font-medium">Valor</th>
-                  <th className="py-2 px-3 text-center font-medium">Ativo</th>
-                  <th className="py-2 px-3 text-center font-medium">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {liquidityEvents.map(event => (
-                  editingEventId === event.id ? (
-                    <tr key={event.id} className="bg-accent/10">
-                      <td className="py-2 px-3">
-                        <Input
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          className="h-8 text-xs"
-                        />
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        <Input
-                          type="number"
-                          value={editStartAge}
-                          onChange={(e) => setEditStartAge(parseInt(e.target.value) || currentAge + 1)}
-                          min={currentAge}
-                          max={90}
-                          className="h-8 text-xs w-20 mx-auto text-center"
-                        />
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        <Input
-                          type="number"
-                          value={editRecurrence === 'once' ? '' : editEndAge}
-                          onChange={(e) => setEditEndAge(e.target.value === '' ? '' : (parseInt(e.target.value) || currentAge + 1))}
-                          min={currentAge}
-                          max={90}
-                          className="h-8 text-xs w-20 mx-auto text-center"
-                          disabled={editRecurrence === 'once'}
-                        />
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        <select
-                          value={editRecurrence}
-                          onChange={(e) => setEditRecurrence(e.target.value as 'once' | 'annual' | 'monthly')}
-                          className="h-8 text-xs rounded-md border border-input bg-background px-2"
-                        >
-                          <option value="once">Única</option>
-                          <option value="annual">Anual</option>
-                          <option value="monthly">Mensal</option>
-                        </select>
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        <select
-                          value={editType}
-                          onChange={(e) => setEditType(e.target.value as 'positive' | 'negative')}
-                          className="h-8 text-xs rounded-md border border-input bg-background px-2"
-                        >
-                          <option value="positive">Entrada</option>
-                          <option value="negative">Saída</option>
-                        </select>
-                      </td>
-                      <td className="py-2 px-3 text-right">
-                        <CurrencyInput
-                          value={editValue}
-                          onChange={(value) => setEditValue(value)}
-                          className="h-8 text-xs w-28 ml-auto"
-                        />
-                      </td>
-                      <td className="py-2 px-3 text-center">-</td>
-                      <td className="py-2 px-3 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={saveEditLiquidityEvent}
-                            className="text-[#21887C] hover:text-[#1a6b5f] text-xs font-medium"
-                          >Salvar</button>
-                          <button
-                            onClick={cancelEditLiquidityEvent}
-                            className="text-muted-foreground hover:text-foreground text-xs"
-                          >Cancelar</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    <tr key={event.id}>
-                      <td className="py-2 px-3">{event.name}</td>
-                      <td className="py-2 px-3 text-center">{event.startAge ?? event.age} anos</td>
-                      <td className="py-2 px-3 text-center">{event.endAge != null ? `${event.endAge} anos` : '-'}</td>
-                      <td className="py-2 px-3 text-center">{(event.recurrence || 'once') === 'once' ? 'Única' : (event.recurrence === 'annual' ? 'Anual' : 'Mensal')}</td>
-                      <td className="py-2 px-3 text-center">
-                        <span className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-medium ${event.isPositive ? 'text-[#21887C]' : 'text-[#E52B50]'}`} style={{ backgroundColor: event.isPositive ? '#21887C20' : '#E52B5020' }}>
-                          {event.isPositive ? 'Entrada' : 'Saída'}
-                        </span>
-                      </td>
-                      <td className="py-2 px-3 text-right font-medium">
-                        {formatCurrency(event.value)}
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        <Switch
-                          checked={event.enabled !== false}
-                          onCheckedChange={(checked) => handleToggleLiquidityEvent(event.id, checked)}
-                        />
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <>
+              <table className="w-full text-sm min-w-[680px]">
+                <thead className="bg-muted/30">
+                  <tr>
+                    <th className="py-2 px-3 text-left font-medium">Fluxo</th>
+                    <th className="py-2 px-3 text-center font-medium">Início</th>
+                    <th className="py-2 px-3 text-center font-medium">Término</th>
+                    <th className="py-2 px-3 text-center font-medium">Recorrência</th>
+                    <th className="py-2 px-3 text-center font-medium">Tipo</th>
+                    <th className="py-2 px-3 text-right font-medium">Valor</th>
+                    <th className="py-2 px-3 text-center font-medium">Ativo</th>
+                    <th className="py-2 px-3 text-center font-medium">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {liquidityEvents.map(event => (
+                    editingEventId === event.id ? (
+                      <tr key={event.id} className="bg-accent/10">
+                        <td className="py-2 px-3">
+                          <Input
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            className="h-8 text-xs"
+                          />
+                        </td>
+                        <td className="py-2 px-3 text-center">
+                          <Input
+                            type="number"
+                            value={editStartAge}
+                            onChange={(e) => setEditStartAge(parseInt(e.target.value) || currentAge + 1)}
+                            min={currentAge}
+                            max={90}
+                            className="h-8 text-xs w-20 mx-auto text-center"
+                          />
+                        </td>
+                        <td className="py-2 px-3 text-center">
+                          <Input
+                            type="number"
+                            value={editRecurrence === 'once' ? '' : editEndAge}
+                            onChange={(e) => setEditEndAge(e.target.value === '' ? '' : (parseInt(e.target.value) || currentAge + 1))}
+                            min={currentAge}
+                            max={90}
+                            className="h-8 text-xs w-20 mx-auto text-center"
+                            disabled={editRecurrence === 'once'}
+                          />
+                        </td>
+                        <td className="py-2 px-3 text-center">
+                          <select
+                            value={editRecurrence}
+                            onChange={(e) => setEditRecurrence(e.target.value as 'once' | 'annual' | 'monthly')}
+                            className="h-8 text-xs rounded-md border border-input bg-background px-2"
+                          >
+                            <option value="once">Única</option>
+                            <option value="annual">Anual</option>
+                            <option value="monthly">Mensal</option>
+                          </select>
+                        </td>
+                        <td className="py-2 px-3 text-center">
+                          <select
+                            value={editType}
+                            onChange={(e) => setEditType(e.target.value as 'positive' | 'negative')}
+                            className="h-8 text-xs rounded-md border border-input bg-background px-2"
+                          >
+                            <option value="positive">Entrada</option>
+                            <option value="negative">Saída</option>
+                          </select>
+                        </td>
+                        <td className="py-2 px-3 text-right">
+                          <CurrencyInput
+                            value={editValue}
+                            onChange={(value) => setEditValue(value)}
+                            className="h-8 text-xs w-28 ml-auto"
+                          />
+                        </td>
+                        <td className="py-2 px-3 text-center">-</td>
+                        <td className="py-2 px-3 text-center">
+                          <div className="flex items-center justify-center gap-2">
                             <button
-                              onClick={() => startEditLiquidityEvent(event)}
-                              className="text-[#36557C] hover:text-[#2a4260]"
-                              title="Editar"
-                            >✎</button>
+                              onClick={saveEditLiquidityEvent}
+                              className="text-[#21887C] hover:text-[#1a6b5f] text-xs font-medium"
+                            >Salvar</button>
                             <button
-                              onClick={() => handleRemoveLiquidityEvent(event.id)}
-                              className="text-[#E52B50] hover:text-[#c41e3a]"
-                              title="Remover evento"
-                            >
-                              ×
-                            </button>
-                          </>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                ))}
+                              onClick={cancelEditLiquidityEvent}
+                              className="text-muted-foreground hover:text-foreground text-xs"
+                            >Cancelar</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      <tr key={event.id}>
+                        <td className="py-2 px-3">{event.name}</td>
+                        <td className="py-2 px-3 text-center">{event.startAge ?? event.age} anos</td>
+                        <td className="py-2 px-3 text-center">{event.endAge != null ? `${event.endAge} anos` : '-'}</td>
+                        <td className="py-2 px-3 text-center">{(event.recurrence || 'once') === 'once' ? 'Única' : (event.recurrence === 'annual' ? 'Anual' : 'Mensal')}</td>
+                        <td className="py-2 px-3 text-center">
+                          <span className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-medium ${event.isPositive ? 'text-[#21887C]' : 'text-[#E52B50]'}`} style={{ backgroundColor: event.isPositive ? '#21887C20' : '#E52B5020' }}>
+                            {event.isPositive ? 'Entrada' : 'Saída'}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 text-right font-medium">
+                          {formatCurrency(event.value)}
+                        </td>
+                        <td className="py-2 px-3 text-center">
+                          <Switch
+                            checked={event.enabled !== false}
+                            onCheckedChange={(checked) => handleToggleLiquidityEvent(event.id, checked)}
+                          />
+                        </td>
+                        <td className="py-2 px-3 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <>
+                              <button
+                                onClick={() => startEditLiquidityEvent(event)}
+                                className="text-[#36557C] hover:text-[#2a4260]"
+                                title="Editar"
+                              >✎</button>
+                              <button
+                                onClick={() => handleRemoveLiquidityEvent(event.id)}
+                                className="text-[#E52B50] hover:text-[#c41e3a]"
+                                title="Remover evento"
+                              >
+                                ×
+                              </button>
+                            </>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  ))}
 
-                {/* Formulário para adicionar novo evento */}
-                <tr className="bg-accent/5">
-                  <td className="py-2 px-3">
-                    <Input
-                      placeholder="Nome do fluxo"
-                      value={newEventName}
-                      onChange={(e) => setNewEventName(e.target.value)}
-                      className="h-8 text-xs"
-                    />
-                  </td>
-                  <td className="py-2 px-3 text-center">
-                    <Input
-                      type="number"
-                      value={newEventStartAge}
-                      onChange={(e) => setNewEventStartAge(parseInt(e.target.value) || currentAge + 1)}
-                      min={currentAge}
-                      max={90}
-                      className="h-8 text-xs w-20 mx-auto text-center"
-                    />
-                  </td>
-                  <td className="py-2 px-3 text-center">
-                    <Input
-                      type="number"
-                      value={newEventRecurrence === 'once' ? '' : newEventEndAge}
-                      onChange={(e) => setNewEventEndAge(e.target.value === '' ? '' : (parseInt(e.target.value) || currentAge + 1))}
-                      min={currentAge}
-                      max={90}
-                      className="h-8 text-xs w-20 mx-auto text-center"
-                      disabled={newEventRecurrence === 'once'}
-                    />
-                  </td>
-                  <td className="py-2 px-3 text-center">
-                    <select
-                      value={newEventRecurrence}
-                      onChange={(e) => setNewEventRecurrence(e.target.value as 'once' | 'annual' | 'monthly')}
-                      className="h-8 text-xs rounded-md border border-input bg-background px-2"
-                    >
-                      <option value="once">Única</option>
-                      <option value="annual">Anual</option>
-                      <option value="monthly">Mensal</option>
-                    </select>
-                  </td>
-                  <td className="py-2 px-3 text-center">
-                    <select
-                      value={newEventType}
-                      onChange={(e) => setNewEventType(e.target.value as 'positive' | 'negative')}
-                      className="h-8 text-xs rounded-md border border-input bg-background px-2"
-                    >
-                      <option value="positive">Entrada</option>
-                      <option value="negative">Saída</option>
-                    </select>
-                  </td>
-                  <td className="py-2 px-3 text-right">
-                    <CurrencyInput
-                      value={newEventValue}
-                      onChange={(value) => setNewEventValue(value)}
-                      className="h-8 text-xs w-28 ml-auto"
-                    />
-                  </td>
-                  <td className="py-2 px-3 text-center">
-                    <button
-                      onClick={handleAddLiquidityEvent}
-                      className="bg-primary text-white h-8 w-8 rounded-full flex items-center justify-center text-lg font-bold"
-                      title="Adicionar evento"
-                      disabled={!newEventName || newEventStartAge < currentAge || newEventValue <= 0 || (newEventRecurrence !== 'once' && newEventEndAge !== '' && Number(newEventEndAge) < newEventStartAge)}
-                    >
-                      +
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  {/* Formulário para adicionar novo evento */}
+                  <tr className="bg-accent/5">
+                    <td className="py-2 px-3">
+                      <Input
+                        placeholder="Nome do fluxo"
+                        value={newEventName}
+                        onChange={(e) => setNewEventName(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      <Input
+                        type="number"
+                        value={newEventStartAge}
+                        onChange={(e) => setNewEventStartAge(parseInt(e.target.value) || currentAge + 1)}
+                        min={currentAge}
+                        max={90}
+                        className="h-8 text-xs w-20 mx-auto text-center"
+                      />
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      <Input
+                        type="number"
+                        value={newEventRecurrence === 'once' ? '' : newEventEndAge}
+                        onChange={(e) => setNewEventEndAge(e.target.value === '' ? '' : (parseInt(e.target.value) || currentAge + 1))}
+                        min={currentAge}
+                        max={90}
+                        className="h-8 text-xs w-20 mx-auto text-center"
+                        disabled={newEventRecurrence === 'once'}
+                      />
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      <select
+                        value={newEventRecurrence}
+                        onChange={(e) => setNewEventRecurrence(e.target.value as 'once' | 'annual' | 'monthly')}
+                        className="h-8 text-xs rounded-md border border-input bg-background px-2"
+                      >
+                        <option value="once">Única</option>
+                        <option value="annual">Anual</option>
+                        <option value="monthly">Mensal</option>
+                      </select>
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      <select
+                        value={newEventType}
+                        onChange={(e) => setNewEventType(e.target.value as 'positive' | 'negative')}
+                        className="h-8 text-xs rounded-md border border-input bg-background px-2"
+                      >
+                        <option value="positive">Entrada</option>
+                        <option value="negative">Saída</option>
+                      </select>
+                    </td>
+                    <td className="py-2 px-3 text-right">
+                      <CurrencyInput
+                        value={newEventValue}
+                        onChange={(value) => setNewEventValue(value)}
+                        className="h-8 text-xs w-28 ml-auto"
+                      />
+                    </td>
+                    <td className="py-2 px-3 text-center">
+                      <button
+                        onClick={handleAddLiquidityEvent}
+                        className="bg-primary text-white h-8 w-8 rounded-full flex items-center justify-center text-lg font-bold"
+                        title="Adicionar evento"
+                        disabled={!newEventName || newEventStartAge < currentAge || newEventValue <= 0 || (newEventRecurrence !== 'once' && newEventEndAge !== '' && Number(newEventEndAge) < newEventStartAge)}
+                      >
+                        +
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -1784,7 +1789,7 @@ const RetirementProjectionChart: React.FC<RetirementProjectionChartProps> = ({
                 <div
                   key={e.id}
                   className={`px-2 py-1 rounded-full border text-xs flex items-center gap-2`}
-                  style={{ 
+                  style={{
                     borderColor: e.isPositive ? '#21887C' : '#E52B50',
                     color: e.isPositive ? '#21887C' : '#E52B50',
                     backgroundColor: e.isPositive ? '#21887C20' : '#E52B5020'
@@ -1808,39 +1813,39 @@ const RetirementProjectionChart: React.FC<RetirementProjectionChartProps> = ({
         {/* Tabela de informações sobre o cenário */}
         <div className="mt-6 border border-border rounded-md overflow-hidden">
           <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[420px]">
-            <thead className="bg-muted/30">
-              <tr>
-                <th className="py-2 px-3 text-left font-medium">Detalhe</th>
-                <th className="py-2 px-3 text-right font-medium">Valor</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="py-2 px-3">Aporte Mensal Necessário</td>
-                <td className="py-2 px-3 text-right">{formatCurrency(projection.aporteMensal)}</td>
-              </tr>
-              <tr>
-                <td className="py-2 px-3">Investimentos Financeiros Alvo</td>
-                <td className="py-2 px-3 text-right">{formatCurrency(Math.round(projection.capitalNecessario))}</td>
-              </tr>
-              <tr>
-                <td className="py-2 px-3">Retirada Mensal Planejada</td>
-                <td className="py-2 px-3 text-right">{formatCurrency(rendaMensal)}</td>
-              </tr>
-              <tr>
-                <td className="py-2 px-3">Duração do Patrimônio</td>
-                <td className="py-2 px-3 text-right">
-                  {isPerpetuity ?
-                    "Perpétuo (nunca se esgota)" :
-                    projection.idadeEsgotamento ?
-                      `Até os ${projection.idadeEsgotamento} anos (${projection.idadeEsgotamento - idadeAposentadoria} anos)` :
-                      `Até os ${lifeExpectancy} anos`
-                  }
-                </td>
-              </tr>
-            </tbody>
-          </table>
+            <table className="w-full text-sm min-w-[420px]">
+              <thead className="bg-muted/30">
+                <tr>
+                  <th className="py-2 px-3 text-left font-medium">Detalhe</th>
+                  <th className="py-2 px-3 text-right font-medium">Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="py-2 px-3">Aporte Mensal Necessário</td>
+                  <td className="py-2 px-3 text-right">{formatCurrency(projection.aporteMensal)}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-3">Investimentos Financeiros Alvo</td>
+                  <td className="py-2 px-3 text-right">{formatCurrency(Math.round(projection.capitalNecessario))}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-3">Retirada Mensal Planejada</td>
+                  <td className="py-2 px-3 text-right">{formatCurrency(rendaMensal)}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-3">Duração do Patrimônio</td>
+                  <td className="py-2 px-3 text-right">
+                    {isPerpetuity ?
+                      "Perpétuo (nunca se esgota)" :
+                      projection.idadeEsgotamento ?
+                        `Até os ${projection.idadeEsgotamento} anos (${projection.idadeEsgotamento - idadeAposentadoria} anos)` :
+                        `Até os ${lifeExpectancy} anos`
+                    }
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -1865,34 +1870,34 @@ const RetirementProjectionChart: React.FC<RetirementProjectionChartProps> = ({
               </button>
             </div>
             <div className="overflow-x-auto">
-            <table className="w-full text-xs min-w-[720px]">
-              <thead className="bg-muted/30">
-                <tr>
-                  <th className="py-2 px-3 text-left font-medium">Idade</th>
-                  <th className="py-2 px-3 text-left font-medium">Fase</th>
-                  <th className="py-2 px-3 text-right font-medium">Capital Inicial</th>
-                  <th className="py-2 px-3 text-right font-medium">Eventos</th>
-                  <th className="py-2 px-3 text-right font-medium">Aporte</th>
-                  <th className="py-2 px-3 text-right font-medium">Rendimento</th>
-                  <th className="py-2 px-3 text-right font-medium">Saque</th>
-                  <th className="py-2 px-3 text-right font-medium">Capital Final</th>
-                </tr>
-              </thead>
-              <tbody>
-                {((projection.fluxoCaixaAnual || []).slice(0, isFlowTableExpanded ? undefined : 10)).map((row: any, idx: number) => (
-                  <tr key={idx} className="border-b border-border last:border-0">
-                    <td className="py-2 px-3">{row.idade}</td>
-                    <td className="py-2 px-3">{row.fase}</td>
-                    <td className="py-2 px-3 text-right">{formatCurrency(Math.round(row.capitalInicial))}</td>
-                    <td className="py-2 px-3 text-right">{row.eventos === 0 ? '-' : formatCurrency(Math.round(row.eventos))}</td>
-                    <td className="py-2 px-3 text-right">{row.aporte === 0 ? '-' : formatCurrency(Math.round(row.aporte))}</td>
-                    <td className="py-2 px-3 text-right">{row.rendimento === 0 ? '-' : formatCurrency(Math.round(row.rendimento))}</td>
-                    <td className="py-2 px-3 text-right">{row.saque === 0 ? '-' : formatCurrency(Math.round(row.saque))}</td>
-                    <td className="py-2 px-3 text-right font-medium">{formatCurrency(Math.round(row.capitalFinal))}</td>
+              <table className="w-full text-xs min-w-[720px]">
+                <thead className="bg-muted/30">
+                  <tr>
+                    <th className="py-2 px-3 text-left font-medium">Idade</th>
+                    <th className="py-2 px-3 text-left font-medium">Fase</th>
+                    <th className="py-2 px-3 text-right font-medium">Capital Inicial</th>
+                    <th className="py-2 px-3 text-right font-medium">Eventos</th>
+                    <th className="py-2 px-3 text-right font-medium">Aporte</th>
+                    <th className="py-2 px-3 text-right font-medium">Rendimento</th>
+                    <th className="py-2 px-3 text-right font-medium">Saque</th>
+                    <th className="py-2 px-3 text-right font-medium">Capital Final</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {((projection.fluxoCaixaAnual || []).slice(0, isFlowTableExpanded ? undefined : 10)).map((row: any, idx: number) => (
+                    <tr key={idx} className="border-b border-border last:border-0">
+                      <td className="py-2 px-3">{row.idade}</td>
+                      <td className="py-2 px-3">{row.fase}</td>
+                      <td className="py-2 px-3 text-right">{formatCurrency(Math.round(row.capitalInicial))}</td>
+                      <td className="py-2 px-3 text-right">{row.eventos === 0 ? '-' : formatCurrency(Math.round(row.eventos))}</td>
+                      <td className="py-2 px-3 text-right">{row.aporte === 0 ? '-' : formatCurrency(Math.round(row.aporte))}</td>
+                      <td className="py-2 px-3 text-right">{row.rendimento === 0 ? '-' : formatCurrency(Math.round(row.rendimento))}</td>
+                      <td className="py-2 px-3 text-right">{row.saque === 0 ? '-' : formatCurrency(Math.round(row.saque))}</td>
+                      <td className="py-2 px-3 text-right font-medium">{formatCurrency(Math.round(row.capitalFinal))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </HideableCard>

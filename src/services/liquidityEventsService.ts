@@ -3,15 +3,18 @@ import { api } from './api';
 // Tipos para os eventos de liquidez
 export interface LiquidityEventApi {
     session_id?: string;
-    nome: string;
-    idade: number;
-    tipo: 'entrada' | 'saida';
-    valor: number;
+    nome?: string;
+    idade?: number;
+    termino?: number;
+    recorrencia?: string;
+    tipo?: 'entrada' | 'saida';
+    valor?: number;
+    status?: number;
 }
 
 // Listar eventos de liquidez por session_id
 export async function getLiquidityEvents(sessionId: string) {
-    const response = await api.get(`/clients/eventos-liquidez/`, {
+    const response = await api.get(`/clients/eventos-liquidez`, {
         params: { session_id: sessionId },
     });
     return response.data.eventsLiquidity as LiquidityEventApi[];
