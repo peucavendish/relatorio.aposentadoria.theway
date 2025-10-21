@@ -53,7 +53,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({ className, userReport
     try {
       setIsGenerating(true);
       const apiUrl = import.meta.env.VITE_API_THE_WAY;
-      const response = await axios.post(`${apiUrl}/gerar-relatorio-analise-carteira-cliente`, {
+      const response = await axios.post(`${apiUrl}/gerar-relatorio-cliente`, {
         name: userReports?.cliente?.nome,
         email: email,
         session_id: sessionId,
