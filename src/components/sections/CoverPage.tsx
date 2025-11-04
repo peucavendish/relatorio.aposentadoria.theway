@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { Card } from '../ui/card';
-import PlanningMap from './PlanningMap';
 import { Calendar, MapPin, User, Users, Target, PiggyBank } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
@@ -79,7 +78,7 @@ const CoverPage: React.FC<CoverPageProps> = ({
             <div className="text-sm font-medium text-accent mb-2 tracking-wider">
               ALTA VISTA INVESTIMENTOS
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-3">Planejamento Patrimonial</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-3">Planejamento de Aposentadoria</h1>
             <p className="text-muted-foreground">
               Preparado especialmente para <span className="font-medium text-foreground">{getInitials(clientData.nome)}</span>
             </p>
@@ -147,10 +146,6 @@ const CoverPage: React.FC<CoverPageProps> = ({
           </Card>
         </div>
 
-        {/* Planning Map */}
-        <div className="mb-6">
-          <PlanningMap />
-        </div>
 
         {/* About This Report */}
         <div
@@ -160,12 +155,15 @@ const CoverPage: React.FC<CoverPageProps> = ({
           <CardWithHighlight highlight>
             <h2 className="card-title-standard text-lg">Sobre este relatório</h2>
             <p className="mb-4">
-              Este documento apresenta um planejamento patrimonial personalizado, elaborado
-              especificamente para suas necessidades e objetivos. Ele contempla análises,
-              projeções e recomendações para otimizar sua jornada patrimonial e financeira.
+              Este documento apresenta um planejamento de aposentadoria personalizado, elaborado
+              especificamente para suas necessidades e objetivos de independência financeira. 
+              Ele contempla análises, projeções e recomendações estratégicas para garantir 
+              sua qualidade de vida na aposentadoria.
             </p>
             <p className="mb-4">
-              Os projetos de vida informados pelo cliente orientam as prioridades deste plano. Abaixo, um resumo dos principais objetivos considerados:
+              O foco principal deste plano é garantir que você tenha recursos suficientes para 
+              manter seu padrão de vida desejado durante toda a aposentadoria. Abaixo, os 
+              principais objetivos de aposentadoria considerados:
             </p>
             {retirementSummary && (retirementSummary.rendaMensalDesejada || retirementSummary.idadeAposentadoria) && (
               <div className="mb-4 rounded-md border border-accent/40 bg-accent/5 p-3">
@@ -212,17 +210,10 @@ const CoverPage: React.FC<CoverPageProps> = ({
 
             <p>
               Navegue pelas seções usando a barra inferior ou os botões de navegação para
-              explorar cada aspecto do seu planejamento patrimonial.
+              explorar cada aspecto do seu planejamento de aposentadoria.
             </p>
           </CardWithHighlight>
         </div>
-
-        {/* Inline children (e.g., Security Indicator) */}
-        {children && (
-          <div className="mt-6">
-            {children}
-          </div>
-        )}
       </div>
     </section>
   );

@@ -7,13 +7,8 @@ import { useSectionVisibility } from '@/context/SectionVisibilityContext';
 const sections = [
   { id: 'cover', label: 'Capa' },
   { id: 'summary', label: 'Resumo Financeiro' },
-  { id: 'total-asset-allocation', label: 'Gestão de Ativos' },
-  { id: 'retirement', label: 'Planejamento de Aposentadoria' },
-  { id: 'beach-house', label: 'Aquisição de Bens' },
-  { id: 'protection', label: 'Proteção Patrimonial' },
-  { id: 'succession', label: 'Planejamento Sucessório' },
-  { id: 'tax', label: 'Planejamento Tributário' },
-  { id: 'action-plan', label: 'Plano de Ação' }
+  { id: 'balanco-patrimonial', label: 'Balanço Patrimonial' },
+  { id: 'retirement', label: 'Planejamento de Aposentadoria' }
 ];
 
 interface DotNavigationProps {

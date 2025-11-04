@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import HideableCard from '@/components/ui/HideableCard';
 import { useCardVisibility } from '@/context/CardVisibilityContext';
-import { BarChart, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { BarChart, AlertTriangle, CheckCircle2, PiggyBank, TrendingUp, Calendar, DollarSign } from 'lucide-react';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import DonutChart from '@/components/charts/DonutChart';
 import { formatCurrency } from '@/utils/formatCurrency';
@@ -87,6 +87,11 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
     })
     .filter((i: { raw: number }) => i.raw > 0)
     .sort((a: { value: number }, b: { value: number }) => b.value - a.value);
+
+  // Dados de previdência privada
+  const previdenciaPrivada = (source as any)?.previdencia_privada || [];
+  const totalSaldoPrevidencia = previdenciaPrivada.reduce((sum: number, prev: any) => sum + (prev.saldo_atual || 0), 0);
+  const totalContribuicaoPrevidencia = previdenciaPrivada.reduce((sum: number, prev: any) => sum + (prev.contribuicao_mensal || 0), 0);
 
   // KPIs dinâmicos
   const totalAtivos: number = Number(totalComposition);
@@ -222,44 +227,6 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
     coberturaMeses >= 12 ? 'gold' : coberturaMeses >= 6 ? 'warning' : 'danger';
   const valorMetaCobertura: number = metaCoberturaMeses * despesasMensais;
   const deltaValorCobertura: number = valorMetaCobertura - totalCurtoPrazo;
-
-  // Exposição Geográfica dos Investimentos (Brasil vs Exterior)
-  // Denominador: valor total de "Investimentos" informado em composicao_patrimonial
-  const totalInvestimentosComposicao: number = Number(((fin?.composicao_patrimonial || fin?.composicaoPatrimonial || (source as any)?.composicao_patrimonial || (source as any)?.composicaoPatrimonial || {}) as any)['Investimentos'] || 0);
-
-  // Numerador (Exterior): Preferir indicador explícito quando existir; senão, inferir pelos ativos
-  const valorExteriorIndicadores: number = Number(
-    fin?.indicadores?.investimento_internacional?.valor ||
-    (data as any)?.indicadores?.investimento_internacional?.valor ||
-    0
-  );
-  const exteriorInvestimentos = Array.isArray(ativos)
-    ? ativos.filter((a: any) => {
-        const tipo = String(a?.tipo || '').toLowerCase();
-        const classe = String(a?.classe || '').toLowerCase();
-        return tipo === 'internacional' || (tipo.includes('invest') && classe.includes('internacional'));
-      })
-    : [];
-  const valorExteriorInferido = exteriorInvestimentos.reduce((sum: number, a: any) => sum + (Number(a?.valor) || 0), 0);
-  const valorExterior = valorExteriorIndicadores > 0 ? valorExteriorIndicadores : valorExteriorInferido;
-  const valorBrasil = Math.max(0, totalInvestimentosComposicao - valorExterior);
-  const pctExterior = totalInvestimentosComposicao > 0 ? Math.round((valorExterior / totalInvestimentosComposicao) * 100) : 0;
-  const pctBrasil = totalInvestimentosComposicao > 0 ? 100 - pctExterior : 0;
-  const recomendacaoExteriorPct = 18;
-  const deltaExteriorPct = recomendacaoExteriorPct - pctExterior;
-  const valorExteriorRecomendado: number = (totalInvestimentosComposicao * recomendacaoExteriorPct) / 100;
-  const deltaExteriorValor: number = valorExteriorRecomendado - valorExterior;
-
-  const geoExposureData = [
-    { name: 'Brasil', value: pctBrasil, color: '#36557C', rawValue: formatCurrency(valorBrasil), raw: valorBrasil },
-    { name: 'Exterior', value: pctExterior, color: '#B8860B', rawValue: formatCurrency(valorExterior), raw: valorExterior }
-  ].filter(i => i.raw > 0);
-
-  // Alerta: somente avisar quando abaixo da recomendação. Se estiver igual ou acima, considerar ok.
-  const alertClass = deltaExteriorPct > 0
-    ? 'bg-[#E52B50]/10 text-[#E52B50]'
-    : 'bg-[#21887C]/10 text-[#21887C]';
-
 
   return (
     <section className="min-h-screen py-16 px-4" id="total-asset-allocation">
@@ -436,62 +403,104 @@ const TotalAssetAllocation: React.FC<TotalAssetAllocationProps> = ({ data, hideC
                 </div>
               )}
 
-              {/* Exposição Geográfica dos Investimentos Financeiros */}
-              <div className="mb-8">
-                <h3 className="heading-3 mb-4">Exposição Geográfica dos Investimentos Financeiros</h3>
-                <div className="grid md:grid-cols-2 gap-6 items-center">
-                  <DonutChart
-                    data={geoExposureData}
-                    height={240}
-                    innerRadius={60}
-                    outerRadius={90}
-                    legendPosition="side"
-                  />
-                  <div className="space-y-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/10 text-center min-w-0">
-                  <div className="text-xs text-muted-foreground whitespace-normal break-words">Exterior</div>
-                  <div className="text-base sm:text-lg font-semibold">{formatCurrency(valorExterior)}</div>
-                  <div className="text-sm text-muted-foreground">({pctExterior}%)</div>
-                  </div>
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/10 text-center min-w-0">
-                  <div className="text-xs text-muted-foreground whitespace-normal break-words">Brasil</div>
-                  <div className="text-base sm:text-lg font-semibold">{formatCurrency(valorBrasil)}</div>
-                  <div className="text-sm text-muted-foreground">({pctBrasil}%)</div>
-                  </div>
-                  <div className="p-3 rounded-lg border border-border/50 bg-muted/10 text-center min-w-0">
-                  <div className="text-xs text-muted-foreground whitespace-normal break-words">Recomendação Exterior</div>
-                  <div className="text-base sm:text-lg font-semibold">18% ({formatCurrency(valorExteriorRecomendado)})</div>
-                  </div>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                  <div className={`p-2 rounded-md ${alertClass}`}>
-                    {deltaExteriorPct > 0 ? (
-                      <span>Exposição ao exterior abaixo do recomendado em {Math.abs(deltaExteriorPct)} p.p. ({formatCurrency(Math.max(0, deltaExteriorValor))} a mais necessários).</span>
-                    ) : (
-                      <span>Exposição ao exterior alinhada à recomendação {deltaExteriorValor < 0 ? `(excesso de ${formatCurrency(Math.abs(deltaExteriorValor))})` : ''}.</span>
-                    )}
-                  </div>
+              {/* Previdência Privada */}
+              {previdenciaPrivada && previdenciaPrivada.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="heading-3 mb-4">Previdência Privada</h3>
+                  
+                  {/* Resumo Geral */}
+                  <div className="grid md:grid-cols-3 gap-4 mb-6">
+                    <div className="card-metric">
+                      <h4 className="card-metric-label">Saldo Total</h4>
+                      <div className="card-metric-value">
+                        {formatCurrency(totalSaldoPrevidencia)}
+                      </div>
+                    </div>
+                    <div className="card-metric">
+                      <h4 className="card-metric-label">Contribuição Mensal Total</h4>
+                      <div className="card-metric-value">
+                        {formatCurrency(totalContribuicaoPrevidencia)}
+                      </div>
+                    </div>
+                    <div className="card-metric">
+                      <h4 className="card-metric-label">Planos Ativos</h4>
+                      <div className="card-metric-value">
+                        {previdenciaPrivada.length}
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="mt-3">
-                  <div className="text-xs text-muted-foreground mb-1">Comparação vs. Meta (18% no exterior)</div>
-                  <div className="relative h-3 rounded-full bg-muted overflow-hidden">
-                  <div className="absolute inset-y-0 left-0" style={{ width: `${pctExterior}%`, backgroundColor: '#B8860B' }} />
-                  <div className="absolute inset-y-0" style={{ left: `${pctExterior}%`, width: `${pctBrasil}%`, backgroundColor: '#36557C' }} />
-                    <div className="absolute -top-1 bottom-0" style={{ left: `${recomendacaoExteriorPct}%` }}>
-                        <div className="w-0.5 h-4" style={{ backgroundColor: pctExterior >= recomendacaoExteriorPct ? '#21887C' : '#B8860B' }}></div>
+                  {/* Detalhamento por Plano */}
+                  <div className="space-y-4">
+                    {previdenciaPrivada.map((plano: any, index: number) => (
+                      <div key={index} className="p-4 border border-border/70 rounded-lg bg-muted/20">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center mb-2">
+                              <div className="bg-accent/10 p-2 rounded-full mr-3">
+                                <TrendingUp size={16} className="text-accent" />
+                              </div>
+                              <h4 className="font-semibold text-lg">{plano.tipo}</h4>
+                            </div>
+                            <div className="grid md:grid-cols-2 gap-4 mt-3">
+                              <div className="flex items-center">
+                                <DollarSign size={16} className="text-muted-foreground mr-2" />
+                                <span className="text-sm text-muted-foreground">Saldo Atual:</span>
+                                <span className="ml-2 font-semibold">{formatCurrency(plano.saldo_atual || 0)}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <Calendar size={16} className="text-muted-foreground mr-2" />
+                                <span className="text-sm text-muted-foreground">Contribuição Mensal:</span>
+                                <span className="ml-2 font-semibold">{formatCurrency(plano.contribuicao_mensal || 0)}</span>
+                              </div>
+                            </div>
+                            {plano.descricao && (
+                              <p className="text-sm text-muted-foreground mt-2">{plano.descricao}</p>
+                            )}
                           </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Análise e Recomendações */}
+                  <div className="mt-6 space-y-4">
+                    <div className="p-4 border border-blue-200 rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                      <h4 className="font-semibold text-sm mb-2 text-blue-800 dark:text-blue-200">
+                        Diversificação de Planos
+                      </h4>
+                      <p className="text-sm text-blue-700 dark:text-blue-300">
+                        Você possui {previdenciaPrivada.length} plano(s) de previdência privada, 
+                        o que contribui para a diversificação da sua estratégia de aposentadoria.
+                      </p>
                     </div>
-                  <div className="flex justify-between text-[11px] text-muted-foreground mt-1">
-                    <span>Exterior {pctExterior}%</span>
-                  <span>Meta Exterior 18%</span>
-                  <span>Brasil {pctBrasil}%</span>
-                  </div>
-                  </div>
+                    
+                    {totalContribuicaoPrevidencia > 0 && (
+                      <div className="p-4 border border-green-200 rounded-lg bg-green-50 dark:bg-green-950/20">
+                        <h4 className="font-semibold text-sm mb-2 text-green-800 dark:text-green-200">
+                          Contribuições Regulares
+                        </h4>
+                        <p className="text-sm text-green-700 dark:text-green-300">
+                          Suas contribuições mensais de {formatCurrency(totalContribuicaoPrevidencia)} demonstram 
+                          disciplina na construção do patrimônio para aposentadoria.
+                        </p>
+                      </div>
+                    )}
+
+                    {totalSaldoPrevidencia > 0 && (
+                      <div className="p-4 border border-purple-200 rounded-lg bg-purple-50 dark:bg-purple-950/20">
+                        <h4 className="font-semibold text-sm mb-2 text-purple-800 dark:text-purple-200">
+                          Patrimônio Acumulado
+                        </h4>
+                        <p className="text-sm text-purple-700 dark:text-purple-300">
+                          Seu saldo total de {formatCurrency(totalSaldoPrevidencia)} em previdência privada 
+                          representa uma base sólida para sua aposentadoria.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Resumo Executivo (dinâmico) */}
               <div className="grid md:grid-cols-3 gap-6 mb-8">

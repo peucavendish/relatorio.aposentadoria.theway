@@ -21,12 +21,10 @@ interface RetirementData {
   idadeAtual: number;
   expectativaVida: number;
   cenarios: any[];
-  perfilInvestidor: string;
-  alocacaoAtivos: any[];
+  estrategias: Array<{ tipo: string; valor: number; descricao: string }>;
+  riscosIdentificados: string[];
+  recomendacoes: Array<{ tipo: string; descricao: string }>;
   anosRestantes: number;
-  aporteMensalRecomendado: number;
-  possuiPGBL: boolean;
-  valorPGBL: number;
   taxaRetiradaSegura: number;
   taxaInflacao: number;
   taxaJurosReal: number;
@@ -321,6 +319,107 @@ const RetirementPlanning: React.FC<RetirementPlanningProps> = ({ data, hideContr
           </HideableCard>
         </div>
 
+        {/* Seção de Estratégias */}
+        {data?.estrategias && data.estrategias.length > 0 && (
+          <div className="mb-8 animate-on-scroll delay-3">
+            <HideableCard
+              id="estrategias-aposentadoria"
+              isVisible={isCardVisible("estrategias-aposentadoria")}
+              onToggleVisibility={() => toggleCardVisibility("estrategias-aposentadoria")}
+              hideControls={hideControls}
+            >
+              <CardHeader>
+                <CardTitle className="card-title-standard text-lg">Estratégias de Aposentadoria</CardTitle>
+                <CardDescription>
+                  Plano estruturado para alcançar seus objetivos de aposentadoria
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {data.estrategias.map((estrategia, index) => (
+                    <div key={index} className="p-4 border border-border/70 rounded-lg bg-muted/20">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-lg mb-2">{estrategia.tipo}</h4>
+                          <p className="text-muted-foreground mb-2">{estrategia.descricao}</p>
+                          <div className="text-sm font-medium text-accent">
+                            Valor: {formatCurrency(estrategia.valor)}
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <div className="bg-accent/10 p-2 rounded-full">
+                            <Target size={20} className="text-accent" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </HideableCard>
+          </div>
+        )}
+
+        {/* Seção de Riscos Identificados */}
+        {data?.riscosIdentificados && data.riscosIdentificados.length > 0 && (
+          <div className="mb-8 animate-on-scroll delay-4">
+            <HideableCard
+              id="riscos-aposentadoria"
+              isVisible={isCardVisible("riscos-aposentadoria")}
+              onToggleVisibility={() => toggleCardVisibility("riscos-aposentadoria")}
+              hideControls={hideControls}
+            >
+              <CardHeader>
+                <CardTitle className="card-title-standard text-lg">Riscos Identificados</CardTitle>
+                <CardDescription>
+                  Principais riscos que podem impactar seu plano de aposentadoria
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {data.riscosIdentificados.map((risco, index) => (
+                    <div key={index} className="flex items-start p-3 border border-orange-200 rounded-lg bg-orange-50 dark:bg-orange-950/20">
+                      <AlertTriangle size={20} className="text-orange-600 mt-0.5 mr-3 flex-shrink-0" />
+                      <span className="text-sm">{risco}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </HideableCard>
+          </div>
+        )}
+
+        {/* Seção de Recomendações */}
+        {data?.recomendacoes && data.recomendacoes.length > 0 && (
+          <div className="mb-8 animate-on-scroll delay-5">
+            <HideableCard
+              id="recomendacoes-aposentadoria"
+              isVisible={isCardVisible("recomendacoes-aposentadoria")}
+              onToggleVisibility={() => toggleCardVisibility("recomendacoes-aposentadoria")}
+              hideControls={hideControls}
+            >
+              <CardHeader>
+                <CardTitle className="card-title-standard text-lg">Recomendações</CardTitle>
+                <CardDescription>
+                  Ações recomendadas para otimizar seu plano de aposentadoria
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {data.recomendacoes.map((recomendacao, index) => (
+                    <div key={index} className="flex items-start p-4 border border-green-200 rounded-lg bg-green-50 dark:bg-green-950/20">
+                      <CheckCircle size={20} className="text-green-600 mt-0.5 mr-3 flex-shrink-0" />
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-sm mb-1">{recomendacao.tipo}</h4>
+                        <p className="text-sm text-muted-foreground">{recomendacao.descricao}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </HideableCard>
+          </div>
+        )}
 
       </div>
     </section >

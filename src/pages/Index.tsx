@@ -7,12 +7,6 @@ import CoverPage from '@/components/sections/CoverPage';
 import FinancialSummary from '@/components/sections/FinancialSummary';
 import RetirementPlanning from '@/components/sections/RetirementPlanning';
 import TotalAssetAllocation from '@/components/sections/TotalAssetAllocation';
-import BeachHouse from '@/components/sections/BeachHouse';
-import TaxPlanning from '@/components/sections/TaxPlanning';
-import ProtectionPlanning from '@/components/sections/ProtectionPlanning';
-import SuccessionPlanning from '@/components/sections/SuccessionPlanning';
-import ActionPlan from '@/components/sections/ActionPlan';
-import ImplementationMonitoring from '@/components/sections/ImplementationMonitoring';
 import FloatingActions from '@/components/layout/FloatingActions';
 import { DotNavigation, MobileDotNavigation } from '@/components/layout/DotNavigation';
 import { useSectionObserver } from '@/hooks/useSectionObserver';
@@ -21,11 +15,9 @@ import PrintExportButton from '@/components/ui/PrintExportButton';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
 import { formatCurrency } from '@/utils/formatCurrency';
-import SectionVisibilityControls from '@/components/layout/SectionVisibilityControls';
 import { useSectionVisibility } from '@/context/SectionVisibilityContext';
 import HideableSection from '@/components/ui/HideableSection';
-import SecurityIndicator from '@/components/sections/SecurityIndicator';
-import LifeProjects from '@/components/sections/LifeProjects';
+import { getMockUserReports } from '@/testData';
 
 interface IndexPageProps {
   accessor?: boolean;
@@ -47,128 +39,60 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
       estadoCivil: userReports?.cliente?.estadoCivil || "",
       regimeCasamento: userReports?.cliente?.regimeCasamento || "",
       residencia: userReports?.cliente?.residencia || "",
-      xpCode:
-        userReports?.cliente?.codigoXP ||
-        userReports?.cliente?.codigo_xp ||
-        userReports?.cliente?.xpCode ||
-        userReports?.cliente?.xp_code ||
-        userReports?.codigoXP ||
-        userReports?.codigo_xp ||
-        userReports?.xpCode ||
-        userReports?.xp_code ||
-        "",
+      xpCode: userReports?.cliente?.codigo_xp || "",
       email: userReports?.cliente?.email || user?.email || "",
       isProspect: clientPropect || false
     },
     financas: {
       patrimonioLiquido: userReports?.financas?.resumo?.patrimonio_liquido || 0,
-      excedenteMensal: ((Array.isArray(userReports?.financas?.rendas)
-        ? userReports.financas.rendas.reduce((sum: number, renda: any) => sum + (Number(renda?.valor) || 0), 0)
-        : 0) - userReports.financas.resumo.despesas_mensais) || 0,
+      excedenteMensal: userReports?.financas?.resumo?.excedente_mensal || 0,
       rendas: userReports?.financas?.rendas || [],
       despesasMensais: userReports?.financas?.resumo?.despesas_mensais || 0,
       indicadores: userReports?.financas?.indicadores || {},
-      // incluir despesas detalhadas se existirem em userReports
-      despesas: userReports?.financas?.despesas || userReports?.financas?.despesas_detalhadas || [],
-      // Utilizar diretamente a composição patrimonial do JSON, sem transformação
-      composicaoPatrimonial: userReports?.financas?.composicao_patrimonial || userReports?.financas?.composicaoPatrimonial || {},
-      // Processar os ativos de forma dinâmica, independente do tipo
-      ativos: userReports?.financas?.ativos?.map(a => ({
+      despesas: userReports?.financas?.despesas || [],
+      composicaoPatrimonial: userReports?.financas?.composicao_patrimonial || {},
+      ativos: userReports?.ativos?.map(a => ({
         tipo: a.tipo,
         valor: a.valor,
         classe: a.classe
       })) || [],
-      passivos: userReports?.financas?.passivos || []
+      passivos: userReports?.passivos || []
     },
     aposentadoria: {
       patrimonioLiquido: userReports?.financas?.resumo?.patrimonio_liquido || 0,
-      excedenteMensal: ((Array.isArray(userReports?.financas?.rendas)
-        ? userReports.financas.rendas.reduce((sum: number, renda: any) => sum + (Number(renda?.valor) || 0), 0)
-        : 0) - userReports.financas.resumo.despesas_mensais) || 0,
+      excedenteMensal: userReports?.financas?.resumo?.excedente_mensal || 0,
       rendas: userReports?.financas?.rendas || [],
-      totalInvestido: (userReports?.financas?.composicao_patrimonial?.Investimentos
-        || userReports?.financas?.composicaoPatrimonial?.Investimentos
-        || userReports?.composicao_patrimonial?.Investimentos
-        || userReports?.composicaoPatrimonial?.Investimentos
-        || 0),
-      ativos: (userReports?.financas?.ativos || userReports?.ativos || []).map((a: any) => ({
+      totalInvestido: userReports?.composicao_patrimonial?.Investimentos || 0,
+      ativos: userReports?.ativos?.map((a: any) => ({
         tipo: a?.tipo,
         valor: a?.valor,
         classe: a?.classe
-      })),
-      passivos: userReports?.financas?.passivos || userReports?.passivos || [],
+      })) || [],
+      passivos: userReports?.passivos || [],
 
-      rendaMensalDesejada:
-        (userReports?.planoAposentadoria?.renda_desejada != null && Number(userReports.planoAposentadoria.renda_desejada) > 0
-          ? Number(userReports.planoAposentadoria.renda_desejada)
-          : (Number(userReports?.financas?.resumo?.despesas_mensais) || 0)),
+      rendaMensalDesejada: userReports?.planoAposentadoria?.renda_desejada || 0,
       idadeAposentadoria: userReports?.planoAposentadoria?.idade_aposentadoria || 0,
       patrimonioAlvo: userReports?.planoAposentadoria?.capital_necessario || 0,
 
       idadeAtual: userReports?.planoAposentadoria?.idade_atual || 0,
       expectativaVida: userReports?.planoAposentadoria?.expectativa_vida || 0,
 
-      cenarios: userReports?.planoAposentadoria?.cenarios?.map(c => ({
-        idade: c.idade_aposentadoria,
-        aporteMensal: c.aporte_mensal,
-        capitalNecessario: c.capital_necessario
-      })) || [],
-
-      perfilInvestidor: userReports?.perfil_investidor || "",
-      alocacaoAtivos: userReports?.alocacao_ativos?.composicao?.map(a => ({
-        ativo: a.ativo,
-        percentual: a.percentual
-      })) || [],
+      cenarios: userReports?.planoAposentadoria?.cenarios || [],
+      estrategias: userReports?.planoAposentadoria?.estrategias || [],
+      riscosIdentificados: userReports?.planoAposentadoria?.riscosIdentificados || [],
+      recomendacoes: userReports?.planoAposentadoria?.recomendacoes || [],
 
       anosRestantes: (userReports?.planoAposentadoria?.idade_aposentadoria || 0) -
         (userReports?.planoAposentadoria?.idade_atual || 0),
-      aporteMensalRecomendado: userReports?.planoAposentadoria?.cenarios?.[0]?.aporte_mensal || 0,
-
-      possuiPGBL: userReports?.tributario?.deducoes?.some(d => d.tipo === "PGBL") || false,
-      valorPGBL: userReports?.tributario?.deducoes?.find(d => d.tipo === "PGBL")?.valor || 0,
 
       taxaRetiradaSegura: 0.04,
       taxaInflacao: 0.03,
-      taxaJurosReal: 0.03
-      ,
-      // Inclui objetivos do cliente para derivar fluxos (ex.: compra de casa)
+      taxaJurosReal: 0.03,
+
       objetivos: userReports?.objetivos || []
     },
     objetivos: userReports?.objetivos || [],
-    tributario: {
-      resumo: userReports?.tributario?.resumo || {},
-      estruturacaoPatrimonial: userReports?.tributario?.estruturacaoPatrimonial || [],
-      investimentosIsentos: userReports?.tributario?.investimentosIsentos || [],
-      deducoes: userReports?.tributario?.deducoes || [],
-      holdingFamiliar: userReports?.tributario?.holdingFamiliar || {},
-      previdenciaVGBL: userReports?.tributario?.previdenciaVGBL || {},
-      economiaTributaria: userReports?.tributario?.economiaTributaria || {}
-    },
-    protecao: {
-      titulo: userReports?.protecao?.titulo || "Proteção Patrimonial",
-      resumo: userReports?.protecao?.resumo || "Proteção do patrimônio",
-      analiseNecessidades: userReports?.protecao?.analiseNecessidades || {},
-      seguroVida: userReports?.protecao?.seguroVida || {},
-      seguroPatrimonial: userReports?.protecao?.seguroPatrimonial || {},
-      seguroDO: userReports?.protecao?.seguroDO || {},
-      seguroInternacional: userReports?.protecao?.seguroInternacional || {},
-      protecaoJuridica: userReports?.protecao?.protecaoJuridica || {},
-      recomendacoesAdicionais: userReports?.protecao?.recomendacoesAdicionais || {},
-      seguros_existentes: userReports?.protecao?.seguros_existentes || []
-    },
-    sucessao: userReports?.sucessao || {},
-    previdencia_privada: userReports?.previdencia_privada || [],
-    planoAcao: {
-      titulo: userReports?.planoAcao?.titulo || "Plano de Ação Financeira",
-      resumo: userReports?.planoAcao?.resumo || "Plano de ação financeira",
-      indicadorSegurancaFinanceira: userReports?.planoAcao?.indicadorSegurancaFinanceira || {},
-      cronograma: userReports?.planoAcao?.cronograma || [],
-      acoesPrioritarias: userReports?.planoAcao?.acoesPrioritarias || [],
-      metasCurtoPrazo: userReports?.planoAcao?.metasCurtoPrazo || [],
-      acompanhamentoProgresso: userReports?.planoAcao?.acompanhamentoProgresso || {},
-      conclusao: userReports?.planoAcao?.conclusao || {}
-    },
-    imovelDesejado: userReports?.imovelDesejado || {}
+    previdencia_privada: userReports?.previdencia_privada || []
   });
 
   const lifeProjectsSummary = () => {
@@ -190,7 +114,7 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
         const sessionIdFromUrl = urlParams.get('sessionId');
 
         if (sessionIdFromUrl) {
-          setSessionId(sessionIdFromUrl); // ← Definir o sessionId no estado
+          setSessionId(sessionIdFromUrl);
           const apiUrl = import.meta.env.VITE_API_THE_WAY;
           const response = await axios.get(`${apiUrl}/client-reports/${sessionIdFromUrl}`);
 
@@ -201,9 +125,16 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
             return output ?? {};
           };
           setUserReports(normalizeReport(reportData));
+        } else {
+          // Usar dados mockados quando não há sessionId
+          console.log('Usando dados mockados para desenvolvimento');
+          setUserReports(getMockUserReports());
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
+        // Fallback para dados mockados em caso de erro
+        console.log('Erro na API, usando dados mockados');
+        setUserReports(getMockUserReports());
       }
     };
     fetchUserReportsData();
@@ -214,7 +145,7 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
       setIsLoading(false);
     }, 1000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [userReports]);
 
   // Componente interno que aplica a regra de auto-ocultar dentro do provider
   const AutoHideSections: React.FC<{ userReports: any }> = ({ userReports }) => {
@@ -263,7 +194,7 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
         <SectionVisibilityProvider>
           <AutoHideSections userReports={userReports} />
           <div className="relative h-screen overflow-hidden">
-            <Header showLogout={!!clientPropect} showSummaryToggle={!clientPropect} />
+            <Header showLogout={!!clientPropect} />
             <main className="h-[calc(100vh-64px)] overflow-y-auto">
               <div className="min-h-screen">
                 <CoverPage
@@ -278,84 +209,26 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
                     rendaMensalDesejada: getClientData().aposentadoria.rendaMensalDesejada,
                     idadeAposentadoria: getClientData().aposentadoria.idadeAposentadoria,
                   }}
-                >
-                  <SecurityIndicator
-                    scoreFinanceiro={{
-                      pilar: 'Total Geral',
-                      notaPonderada: userReports?.scoreFinanceiro?.find?.(s => s.Pilar === 'Total Geral')?.['Nota Ponderada'] ?? 0,
-                      elementosAvaliados: (userReports?.scoreFinanceiro || [])
-                        .filter((s: any) => s.Pilar && s.Pilar !== 'Total Geral')
-                        .sort((a: any, b: any) => {
-                          const order = [
-                            'Gestão de Ativos',
-                            'Aposentadoria',
-                            'Gestão de Riscos',
-                            'Planejamento Sucessório',
-                            'Gestão Tributária',
-                            'Organização Patrimonial'
-                          ];
-                          const ia = order.indexOf(a.Pilar);
-                          const ib = order.indexOf(b.Pilar);
-                          return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-                        })
-                        .map((s: any) => ({ nome: s.Pilar, nota: s['Nota'] }))
-                    }}
-                    hideControls={clientPropect}
-                  />
-                </CoverPage>
+                />
               </div>
 
-              <HideableSection sectionId="summary" hideControls={clientPropect}>
+              <HideableSection sectionId="summary">
                 <FinancialSummary data={getClientData().financas} hideControls={clientPropect} />
               </HideableSection>
 
-              <HideableSection sectionId="total-asset-allocation" hideControls={clientPropect}>
+              <HideableSection sectionId="balanco-patrimonial">
                 <TotalAssetAllocation data={userReports} hideControls={clientPropect} />
               </HideableSection>
 
-              <HideableSection sectionId="retirement" hideControls={clientPropect}>
+              <HideableSection sectionId="retirement">
                 <RetirementPlanning data={getClientData().aposentadoria} hideControls={clientPropect} />
               </HideableSection>
-
-              <HideableSection sectionId="beach-house" hideControls={clientPropect}>
-                <BeachHouse data={userReports} hideControls={clientPropect} />
-              </HideableSection>
-
-              <HideableSection sectionId="protection" hideControls={clientPropect}>
-                <ProtectionPlanning data={getClientData()} hideControls={clientPropect} />
-              </HideableSection>
-
-              <HideableSection sectionId="succession" hideControls={clientPropect}>
-                <SuccessionPlanning data={getClientData()} hideControls={clientPropect} />
-              </HideableSection>
-
-              <HideableSection sectionId="tax" hideControls={clientPropect}>
-                <TaxPlanning data={getClientData()} hideControls={clientPropect} />
-              </HideableSection>
-
-              {false && (
-                <HideableSection sectionId="life-projects" hideControls={clientPropect}>
-                  <LifeProjects data={getClientData()} hideControls={clientPropect} />
-                </HideableSection>
-              )}
-
-              {!clientPropect && (
-                <>
-                  <HideableSection sectionId="action-plan" hideControls={clientPropect}>
-                    <ActionPlan data={getClientData()} hideControls={clientPropect} sessionId={sessionId} />
-                  </HideableSection>
-                  <HideableSection sectionId="implementation-monitoring" hideControls={clientPropect}>
-                    <ImplementationMonitoring data={getClientData()} hideControls={clientPropect} sessionId={sessionId} />
-                  </HideableSection>
-                </>
-              )}
 
 
             </main>
             <DotNavigation clientMode={!!clientPropect} />
             <MobileDotNavigation clientMode={!!clientPropect} />
             {!clientPropect && <FloatingActions userReports={userReports} />}
-            {!clientPropect && <SectionVisibilityControls />}
             {!clientPropect && <PrintExportButton />}
           </div>
         </SectionVisibilityProvider>
