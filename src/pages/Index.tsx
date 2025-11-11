@@ -116,7 +116,7 @@ const IndexPage: React.FC<IndexPageProps> = ({ accessor, clientPropect }) => {
         if (sessionIdFromUrl) {
           setSessionId(sessionIdFromUrl);
           const apiUrl = import.meta.env.VITE_API_THE_WAY;
-          const response = await axios.get(`${apiUrl}/client-reports/${sessionIdFromUrl}`);
+          const response = await axios.get(`${apiUrl}/retirement-reports/${sessionIdFromUrl}`);
 
           const reportData = JSON.parse(response.data[0].report_data);
           const normalizeReport = (raw: any) => {
